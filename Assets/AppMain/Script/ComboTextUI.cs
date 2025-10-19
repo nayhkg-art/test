@@ -65,7 +65,7 @@ public class ComboTextUI : MonoBehaviour
         StopAllCoroutines();
 
         comboNumberTextObject.text = "";
-        comboLabelTextObject.text = "せいかい";
+        comboLabelTextObject.text = "Good!";
         pointsTextObject.text = "";
 
         gameObject.SetActive(true);
