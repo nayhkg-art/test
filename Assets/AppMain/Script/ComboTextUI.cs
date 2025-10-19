@@ -23,6 +23,8 @@ public class ComboTextUI : MonoBehaviour
     public TMP_Text comboNumberTextObject;
     [Tooltip("「COMBO」という文字を表示するテキストオブジェクト")]
     public TMP_Text comboLabelTextObject;
+    [Tooltip("「Good!」という文字を表示するテキストオブジェクト")]
+    public TMP_Text correctLabelTextObject;
     [Tooltip("ポイントを表示するテキストオブジェクト")]
     public TMP_Text pointsTextObject;
 
@@ -33,9 +35,9 @@ public class ComboTextUI : MonoBehaviour
     {
         rectTransform = GetComponent<RectTransform>();
         
-        if (comboNumberTextObject == null || comboLabelTextObject == null || pointsTextObject == null)
+        if (comboNumberTextObject == null || comboLabelTextObject == null || pointsTextObject == null || correctLabelTextObject == null)
         {
-            Debug.LogError("3つのテキストオブジェクトが全てInspectorから設定されていません！");
+            Debug.LogError("4つのテキストオブジェクトが全てInspectorから設定されていません！");
             enabled = false;
             return;
         }
@@ -53,9 +55,11 @@ public class ComboTextUI : MonoBehaviour
         StopAllCoroutines();
         
         comboNumberTextObject.text = comboCount.ToString();
+        comboLabelTextObject.gameObject.SetActive(true);
         comboLabelTextObject.text = "COMBO";
         pointsTextObject.text = $"+{points}";
-        
+        correctLabelTextObject.gameObject.SetActive(false);
+
         gameObject.SetActive(true);
         StartCoroutine(AnimateComboText());
     }
@@ -65,8 +69,10 @@ public class ComboTextUI : MonoBehaviour
         StopAllCoroutines();
 
         comboNumberTextObject.text = "";
-        comboLabelTextObject.text = "Good!";
+        comboLabelTextObject.gameObject.SetActive(false);
         pointsTextObject.text = "";
+        correctLabelTextObject.gameObject.SetActive(true);
+        correctLabelTextObject.text = "Good!";
 
         gameObject.SetActive(true);
         StartCoroutine(AnimateComboText());
