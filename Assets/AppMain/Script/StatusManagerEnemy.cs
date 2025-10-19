@@ -133,6 +133,7 @@ public class StatusManagerEnemy : MonoBehaviour
                 {
                     if (comboTextUI != null)
                     {
+                        comboTextUI.gameObject.SetActive(true);
                         comboTextUI.ShowCorrectText();
                     }
                     
