@@ -128,6 +128,13 @@ public class StatusManagerEnemy : MonoBehaviour
                         comboTextUI.gameObject.SetActive(true);
                         comboTextUI.ShowComboText(consecutiveCorrect, bonusPoints);
                     }
+                }
+                else
+                {
+                    if (comboTextUI != null)
+                    {
+                        comboTextUI.ShowCorrectText();
+                    }
                     
                     if (consecutiveCorrect % 5 == 0)
                     {

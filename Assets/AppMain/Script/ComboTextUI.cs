@@ -59,6 +59,18 @@ public class ComboTextUI : MonoBehaviour
         gameObject.SetActive(true);
         StartCoroutine(AnimateComboText());
     }
+
+    public void ShowCorrectText()
+    {
+        StopAllCoroutines();
+
+        comboNumberTextObject.text = "";
+        comboLabelTextObject.text = "せいかい";
+        pointsTextObject.text = "";
+
+        gameObject.SetActive(true);
+        StartCoroutine(AnimateComboText());
+    }
     
     private IEnumerator AnimateComboText()
     {
