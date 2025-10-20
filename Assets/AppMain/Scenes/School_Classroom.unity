@@ -2763,6 +2763,8 @@ MonoBehaviour:
   moveDistance: 2000
   comboAppearSound: {fileID: 8300000, guid: d6675b94dbe334538b0e999429861022, type: 3}
   comboSoundVolume: 5
+  correctSound: {fileID: 0}
+  correctSoundVolume: 5
   comboNumberTextObject: {fileID: 376348671}
   comboLabelTextObject: {fileID: 195707053}
   correctLabelTextObject: {fileID: 1389684586}
