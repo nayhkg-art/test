@@ -13,10 +13,14 @@ public class ComboTextUI : MonoBehaviour
     [Header("効果音設定")]
     [Tooltip("テキストが中央に表示された時に鳴らす効果音")]
     public AudioClip comboAppearSound;
-    
     [Tooltip("コンボ効果音の音量")]
     [Range(0f, 5f)]
     public float comboSoundVolume = 1.0f;
+    [Tooltip("正解時に鳴らす効果音")]
+    public AudioClip correctSound;
+    [Tooltip("正解効果音の音量")]
+    [Range(0f, 5f)]
+    public float correctSoundVolume = 1.0f;
 
     [Header("UIオブジェクト参照")]
     [Tooltip("コンボ数を表示するテキストオブジェクト")]
@@ -61,7 +65,7 @@ public class ComboTextUI : MonoBehaviour
         correctLabelTextObject.gameObject.SetActive(false);
 
         gameObject.SetActive(true);
-        StartCoroutine(AnimateComboText());
+        StartCoroutine(AnimateComboText(isCorrectOnly: false));
     }
 
     public void ShowCorrectText()
@@ -75,10 +79,10 @@ public class ComboTextUI : MonoBehaviour
         correctLabelTextObject.text = "Good!";
 
         gameObject.SetActive(true);
-        StartCoroutine(AnimateComboText());
+        StartCoroutine(AnimateComboText(isCorrectOnly: true));
     }
     
-    private IEnumerator AnimateComboText()
+    private IEnumerator AnimateComboText(bool isCorrectOnly)
     {
         Vector2 centerPos = initialPosition;
         Vector2 startPos = centerPos + new Vector2(moveDistance, 0);
@@ -94,9 +98,19 @@ public class ComboTextUI : MonoBehaviour
         }
         rectTransform.anchoredPosition = centerPos;
 
-        if (AudioManager.Instance != null && comboAppearSound != null)
+        if (isCorrectOnly)
         {
-            AudioManager.Instance.PlayOneShotSFX(comboAppearSound, comboSoundVolume);
+            if (AudioManager.Instance != null && correctSound != null)
+            {
+                AudioManager.Instance.PlayOneShotSFX(correctSound, correctSoundVolume);
+            }
+        }
+        else
+        {
+            if (AudioManager.Instance != null && comboAppearSound != null)
+            {
+                AudioManager.Instance.PlayOneShotSFX(comboAppearSound, comboSoundVolume);
+            }
         }
 
         yield return new WaitForSeconds(stopDuration);
