@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class StatusManagerPlayer : MonoBehaviour
 {
@@ -21,6 +22,13 @@ public class StatusManagerPlayer : MonoBehaviour
     public RawImage lowHpWarningImage;
     public AudioClip lowHpWarningSound;
 
+    [Header("Jewel System")]
+    public int JewelCount { get; private set; }
+    [SerializeField] private TMP_Text jewelCountText;
+    [SerializeField] private int maxJewels = 50;
+
+    private Heartbeat heartbeat;
+
     // private bool isInvincible = false; // ← 不要なので削除
     private float GageSpeed = 3f;
     private float FillGageTarget;
@@ -33,6 +41,7 @@ public class StatusManagerPlayer : MonoBehaviour
     {
         gameOverManager = FindFirstObjectByType<GameOverManager>();
         cameraController = Camera.main.GetComponent<CameraCustomController>();
+        heartbeat = FindFirstObjectByType<Heartbeat>();
 
         FillGageTarget = (float)HP / MaxHP;
 
@@ -48,6 +57,8 @@ public class StatusManagerPlayer : MonoBehaviour
                 warningAudioSource.outputAudioMixerGroup = AudioManager.Instance.sfxMixerGroup;
             }
         }
+
+        ResetJewelCount();
     }
 
     private void Update()
@@ -135,4 +146,38 @@ public class StatusManagerPlayer : MonoBehaviour
     }
 
     private void CheckHpAndToggleWarningUI() { if (lowHpWarningImage == null) return; float hpPercentage = (float)HP / MaxHP; if (hpPercentage <= 0.2f && !isWarningUiActive) { lowHpWarningImage.gameObject.SetActive(true); isWarningUiActive = true; if (warningAudioSource != null && !warningAudioSource.isPlaying) { warningAudioSource.Play(); } } else if (hpPercentage > 0.2f && isWarningUiActive) { lowHpWarningImage.gameObject.SetActive(false); isWarningUiActive = false; if (warningAudioSource != null && warningAudioSource.isPlaying) { warningAudioSource.Stop(); } } }
+
+    public void AddJewels(int amount)
+    {
+        if (JewelCount >= maxJewels) return;
+
+        JewelCount += amount;
+        if (JewelCount >= maxJewels)
+        {
+            JewelCount = maxJewels;
+            if (heartbeat != null)
+            {
+                heartbeat.ActivateThunderButton();
+            }
+            else
+            {
+                Debug.LogError("Heartbeat reference is not set in StatusManagerPlayer.");
+            }
+        }
+        UpdateJewelUI();
+    }
+
+    public void ResetJewelCount()
+    {
+        JewelCount = 0;
+        UpdateJewelUI();
+    }
+
+    private void UpdateJewelUI()
+    {
+        if (jewelCountText != null)
+        {
+            jewelCountText.text = $"{JewelCount} / {maxJewels}";
+        }
+    }
 }
