@@ -136,18 +136,6 @@ public class StatusManagerEnemy : MonoBehaviour
                         comboTextUI.gameObject.SetActive(true);
                         comboTextUI.ShowCorrectText();
                     }
-                    
-                    if (consecutiveCorrect % 5 == 0)
-                    {
-                        if (heartbeat != null)
-                        {
-                            heartbeat.ActivateThunderButton();
-                        }
-                        else
-                        {
-                            Debug.LogError("Heartbeatのインスタンスが見つかりません。");
-                        }
-                    }
                 }
             }
 
