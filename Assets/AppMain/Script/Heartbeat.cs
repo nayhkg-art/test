@@ -702,6 +702,11 @@ public class Heartbeat : NetworkBehaviour
         thunderAttackButton.interactable = false;
 
         RequestThunderAttackServerRpc();
+
+        if (localPlayerStatus != null)
+        {
+            localPlayerStatus.ResetJewelCount();
+        }
     }
     
     private IEnumerator ShowNotificationRoutine()

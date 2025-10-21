@@ -8,10 +8,11 @@ public class GemBehavior : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            // --- スコア加算や音の再生処理はそのまま ---
             StatusManagerPlayer playerStatus = other.GetComponent<StatusManagerPlayer>();
             if (playerStatus != null)
             {
+                playerStatus.AddJewels(1);
+
                 ScoreAnimeManager scoreAnimeManager = FindFirstObjectByType<ScoreAnimeManager>();
                 if (scoreAnimeManager != null)
                 {
