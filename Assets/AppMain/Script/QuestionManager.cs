@@ -47,6 +47,9 @@ public class QuestionManager : MonoBehaviour
     private float Timer = 0;
     public GameOverManager gameOverManager;
 
+    // --- 変更点：連続正解ボーナス関連の変数 ---
+    private int consecutiveCorrectAnswers = 0;
+
     void Awake()
     {
         if (csvLoader == null)
@@ -114,6 +117,9 @@ public class QuestionManager : MonoBehaviour
 
         DefeatEnemyNum = 0;
         CorrectAnswerNum = 0;
+
+        // --- 変更点：連続正解数を初期化 ---
+        consecutiveCorrectAnswers = 0;
 
         TotalEnemyNumText.text = $" / {TotalEnemyNum}";
 
@@ -418,6 +424,20 @@ public class QuestionManager : MonoBehaviour
             list[i] = list[randomIndex];
             list[randomIndex] = temp;
         }
+    }
+
+    // --- 変更点：連続正解数を更新するメソッド ---
+    public int UpdateConsecutiveCorrectAnswers(bool isCorrectAnswer)
+    {
+        if (isCorrectAnswer)
+        {
+            consecutiveCorrectAnswers++;
+        }
+        else
+        {
+            consecutiveCorrectAnswers = 0;
+        }
+        return consecutiveCorrectAnswers;
     }
 
     public void EnemyWasDefeated(bool isCorrectAnswer)

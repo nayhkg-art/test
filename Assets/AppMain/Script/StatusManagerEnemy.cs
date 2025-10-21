@@ -112,6 +112,33 @@ public class StatusManagerEnemy : MonoBehaviour
                 ScoreAnimeManager.AddScore(TimeScore);
                 ScoreAnimeManager.AddScore(2000);
             }
+            if (questionManager != null)
+            {
+                int consecutiveCorrect = questionManager.UpdateConsecutiveCorrectAnswers(true);
+                if (consecutiveCorrect >= 5)
+                {
+                    int bonusPoints = 500 * (consecutiveCorrect - 4);
+                    if (ScoreAnimeManager != null)
+                    {
+                        ScoreAnimeManager.AddScore(bonusPoints);
+                        Debug.Log($"連続正解ボーナス！ {consecutiveCorrect}回連続正解で{bonusPoints}ポイント追加！");
+                    }
+                    if (comboTextUI != null)
+                    {
+                        comboTextUI.gameObject.SetActive(true);
+                        comboTextUI.ShowComboText(consecutiveCorrect, bonusPoints);
+                    }
+                }
+                else
+                {
+                    if (comboTextUI != null)
+                    {
+                        comboTextUI.gameObject.SetActive(true);
+                        comboTextUI.ShowCorrectText();
+                    }
+                }
+            }
+
             if(GetPlayerStatus != null) GetPlayerStatus.Heal();
             SpawnGems();
             OnSendAttackMessage(this.gameObject);
@@ -120,6 +147,10 @@ public class StatusManagerEnemy : MonoBehaviour
         }
         else
         {
+            if (questionManager != null)
+            {
+                questionManager.UpdateConsecutiveCorrectAnswers(false);
+            }
             if(ScoreAnimeManager != null) ScoreAnimeManager.AddScore(-1000);
             if(SpawnEnemyMissManager.Instance != null) SpawnEnemyMissManager.Instance.MissEnemySpawn(this.gameObject);
         }

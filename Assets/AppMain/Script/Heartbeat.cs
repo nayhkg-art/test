@@ -701,11 +701,6 @@ public class Heartbeat : NetworkBehaviour
 
         thunderAttackButton.interactable = false;
 
-        if (localPlayerStatus != null)
-        {
-            localPlayerStatus.jewelCount = 0;
-        }
-
         RequestThunderAttackServerRpc();
     }
     

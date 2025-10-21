@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,8 +11,6 @@ public class StatusManagerPlayer : MonoBehaviour
     public int BombHP;
     public int HealHP;
     public int TouchDamageHP;
-    public int jewelCount = 0;
-    public TMP_Text jewelCountText;
     public Image HPGage;
     public Gradient hpGradient;
     public AudioClip TouchDamageSE;
@@ -31,28 +28,11 @@ public class StatusManagerPlayer : MonoBehaviour
     private AudioSource warningAudioSource;
     private bool isWarningUiActive = false;
     private CameraCustomController cameraController;
-    private Heartbeat heartbeat;
 
     void Start()
     {
         gameOverManager = FindFirstObjectByType<GameOverManager>();
         cameraController = Camera.main.GetComponent<CameraCustomController>();
-        heartbeat = FindFirstObjectByType<Heartbeat>();
-
-        // Find the JewelCountText GameObject and get the TMP_Text component
-        GameObject jewelCountObject = GameObject.Find("JewelCountText");
-        if (jewelCountObject != null)
-        {
-            jewelCountText = jewelCountObject.GetComponent<TMP_Text>();
-            if (jewelCountText == null)
-            {
-                Debug.LogError("[StatusManagerPlayer] JewelCountText GameObject found, but it does not have a TMP_Text component.");
-            }
-        }
-        else
-        {
-            Debug.LogError("[StatusManagerPlayer] Could not find a GameObject named 'JewelCountText' in the scene. Jewel count UI will not be updated.");
-        }
 
         FillGageTarget = (float)HP / MaxHP;
 
@@ -92,21 +72,6 @@ public class StatusManagerPlayer : MonoBehaviour
         {
             HPGage.color = hpGradient.Evaluate(HPGage.fillAmount);
         }
-
-        jewelCount = Mathf.Min(jewelCount, 50);
-        if (jewelCount >= 50)
-        {
-            if (heartbeat != null)
-            {
-                heartbeat.ActivateThunderButton();
-            }
-        }
-
-        if (jewelCountText != null)
-        {
-            jewelCountText.text = jewelCount.ToString();
-        }
-
         CheckHpAndToggleWarningUI();
     }
     
