@@ -63,6 +63,8 @@ public class Heartbeat : NetworkBehaviour
     [SerializeField] private int thunderFlashCount = 4;
     [Tooltip("アルティメット攻撃のUI")]
     [SerializeField] private UltimateAttackUI ultimateAttackUI;
+    [Tooltip("被アルティメット攻撃のUI")]
+    [SerializeField] private UltimateAttackReceivedUI ultimateAttackReceivedUI;
 
     private NetworkVariable<bool> isPlayingGame = new NetworkVariable<bool>(false);
     public NetworkVariable<int> connectedClientsCount = new NetworkVariable<int>(0);
@@ -829,6 +831,11 @@ public class Heartbeat : NetworkBehaviour
         if (cameraController != null)
         {
             cameraController.TriggerThunderShake();
+        }
+
+        if (ultimateAttackReceivedUI != null)
+        {
+            ultimateAttackReceivedUI.Show();
         }
 
         if (localPlayerStatus != null)
