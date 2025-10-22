@@ -61,6 +61,8 @@ public class Heartbeat : NetworkBehaviour
     [SerializeField] private GameObject attackSentBackgroundImage;
     [Tooltip("雷アイコンの点滅回数")]
     [SerializeField] private int thunderFlashCount = 4;
+    [Tooltip("アルティメット攻撃のUI")]
+    [SerializeField] private UltimateAttackUI ultimateAttackUI;
 
     private NetworkVariable<bool> isPlayingGame = new NetworkVariable<bool>(false);
     public NetworkVariable<int> connectedClientsCount = new NetworkVariable<int>(0);
@@ -692,9 +694,16 @@ public class Heartbeat : NetworkBehaviour
             }
         }
         
-        if (AudioManager.Instance != null && thunderButtonClickSound != null)
+        if (ultimateAttackUI != null)
         {
-            AudioManager.Instance.PlaySFX_2D(thunderButtonClickSound, 1.0f);
+            ultimateAttackUI.Show();
+        }
+        else
+        {
+            if (AudioManager.Instance != null && thunderButtonClickSound != null)
+            {
+                AudioManager.Instance.PlaySFX_2D(thunderButtonClickSound, 1.0f);
+            }
         }
         
         StartCoroutine(ShowNotificationRoutine());
