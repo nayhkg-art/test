@@ -21,6 +21,11 @@ public class ComboTextUI : MonoBehaviour
     [Tooltip("正解効果音の音量")]
     [Range(0f, 5f)]
     public float correctSoundVolume = 1.0f;
+    [Tooltip("不正解時に鳴らす効果音")]
+    public AudioClip incorrectSound;
+    [Tooltip("不正解効果音の音量")]
+    [Range(0f, 5f)]
+    public float incorrectSoundVolume = 1.0f;
 
     [Header("UIオブジェクト参照")]
     [Tooltip("コンボ数を表示するテキストオブジェクト")]
@@ -162,9 +167,9 @@ public class ComboTextUI : MonoBehaviour
         }
         rectTransform.anchoredPosition = centerPos;
 
-        if (AudioManager.Instance != null && correctSound != null)
+        if (AudioManager.Instance != null && incorrectSound != null)
         {
-            AudioManager.Instance.PlayOneShotSFX(correctSound, correctSoundVolume);
+            AudioManager.Instance.PlayOneShotSFX(incorrectSound, incorrectSoundVolume);
         }
 
         yield return new WaitForSeconds(stopDuration);
