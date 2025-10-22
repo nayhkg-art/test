@@ -65,11 +65,21 @@ public class ComboTextUI : MonoBehaviour
     {
         StopAllCoroutines();
         
-        comboNumberTextObject.text = comboCount.ToString();
+        // ▼▼▼ 修正箇所 ▼▼▼
+        // 表示するオブジェクトを全てアクティブにする
+        comboNumberTextObject.gameObject.SetActive(true);
         comboLabelTextObject.gameObject.SetActive(true);
+        pointsTextObject.gameObject.SetActive(true);
+        
+        // 表示しないオブジェクトを全て非アクティブにする
+        correctLabelTextObject.gameObject.SetActive(false);
+        incorrectLabelTextObject.gameObject.SetActive(false);
+
+        // テキストを設定
+        comboNumberTextObject.text = comboCount.ToString();
         comboLabelTextObject.text = "COMBO";
         pointsTextObject.text = $"+{points}";
-        correctLabelTextObject.gameObject.SetActive(false);
+        // ▲▲▲ 修正箇所 ▲▲▲
 
         gameObject.SetActive(true);
         StartCoroutine(AnimateComboText(isCorrectOnly: false));
@@ -78,13 +88,20 @@ public class ComboTextUI : MonoBehaviour
     public void ShowCorrectText()
     {
         StopAllCoroutines();
-
-        comboNumberTextObject.text = "";
-        comboLabelTextObject.gameObject.SetActive(false);
-        pointsTextObject.text = "";
+        
+        // ▼▼▼ 修正箇所 ▼▼▼
+        // 表示するオブジェクトをアクティブにする
         correctLabelTextObject.gameObject.SetActive(true);
-        correctLabelTextObject.text = "Good!";
+
+        // 表示しないオブジェクトを全て非アクティブにする
+        comboNumberTextObject.gameObject.SetActive(false);
+        comboLabelTextObject.gameObject.SetActive(false);
+        pointsTextObject.gameObject.SetActive(false);
         incorrectLabelTextObject.gameObject.SetActive(false);
+
+        // テキストを設定
+        correctLabelTextObject.text = "Good!";
+        // ▲▲▲ 修正箇所 ▲▲▲
 
         gameObject.SetActive(true);
         StartCoroutine(AnimateComboText(isCorrectOnly: true));
@@ -93,13 +110,20 @@ public class ComboTextUI : MonoBehaviour
     public void ShowIncorrectText()
     {
         StopAllCoroutines();
-
-        comboNumberTextObject.text = "";
-        comboLabelTextObject.gameObject.SetActive(false);
-        pointsTextObject.text = "";
-        correctLabelTextObject.gameObject.SetActive(false);
+        
+        // ▼▼▼ 修正箇所 ▼▼▼
+        // 表示するオブジェクトをアクティブにする
         incorrectLabelTextObject.gameObject.SetActive(true);
+
+        // 表示しないオブジェクトを全て非アクティブにする
+        comboNumberTextObject.gameObject.SetActive(false);
+        comboLabelTextObject.gameObject.SetActive(false);
+        pointsTextObject.gameObject.SetActive(false);
+        correctLabelTextObject.gameObject.SetActive(false);
+
+        // テキストを設定
         incorrectLabelTextObject.text = "Miss";
+        // ▲▲▲ 修正箇所 ▲▲▲
 
         gameObject.SetActive(true);
         StartCoroutine(AnimateIncorrectText());
