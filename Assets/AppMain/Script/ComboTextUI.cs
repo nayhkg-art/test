@@ -29,6 +29,8 @@ public class ComboTextUI : MonoBehaviour
     public TMP_Text comboLabelTextObject;
     [Tooltip("「Good!」という文字を表示するテキストオブジェクト")]
     public TMP_Text correctLabelTextObject;
+    [Tooltip("「BAD」という文字を表示するテキストオブジェクト")]
+    public TMP_Text incorrectLabelTextObject;
     [Tooltip("ポイントを表示するテキストオブジェクト")]
     public TMP_Text pointsTextObject;
 
@@ -39,9 +41,9 @@ public class ComboTextUI : MonoBehaviour
     {
         rectTransform = GetComponent<RectTransform>();
         
-        if (comboNumberTextObject == null || comboLabelTextObject == null || pointsTextObject == null || correctLabelTextObject == null)
+        if (comboNumberTextObject == null || comboLabelTextObject == null || pointsTextObject == null || correctLabelTextObject == null || incorrectLabelTextObject == null)
         {
-            Debug.LogError("4つのテキストオブジェクトが全てInspectorから設定されていません！");
+            Debug.LogError("5つのテキストオブジェクトが全てInspectorから設定されていません！");
             enabled = false;
             return;
         }
@@ -77,9 +79,25 @@ public class ComboTextUI : MonoBehaviour
         pointsTextObject.text = "";
         correctLabelTextObject.gameObject.SetActive(true);
         correctLabelTextObject.text = "Good!";
+        incorrectLabelTextObject.gameObject.SetActive(false);
 
         gameObject.SetActive(true);
         StartCoroutine(AnimateComboText(isCorrectOnly: true));
+    }
+
+    public void ShowIncorrectText()
+    {
+        StopAllCoroutines();
+
+        comboNumberTextObject.text = "";
+        comboLabelTextObject.gameObject.SetActive(false);
+        pointsTextObject.text = "";
+        correctLabelTextObject.gameObject.SetActive(false);
+        incorrectLabelTextObject.gameObject.SetActive(true);
+        incorrectLabelTextObject.text = "BAD";
+
+        gameObject.SetActive(true);
+        StartCoroutine(AnimateIncorrectText());
     }
     
     private IEnumerator AnimateComboText(bool isCorrectOnly)
@@ -111,6 +129,42 @@ public class ComboTextUI : MonoBehaviour
             {
                 AudioManager.Instance.PlayOneShotSFX(comboAppearSound, comboSoundVolume);
             }
+        }
+
+        yield return new WaitForSeconds(stopDuration);
+
+        timer = 0f;
+        while (timer < disappearDuration)
+        {
+            rectTransform.anchoredPosition = Vector2.Lerp(centerPos, endPos, timer / disappearDuration);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        rectTransform.anchoredPosition = endPos;
+
+        gameObject.SetActive(false);
+        rectTransform.anchoredPosition = initialPosition;
+    }
+
+    private IEnumerator AnimateIncorrectText()
+    {
+        Vector2 centerPos = initialPosition;
+        Vector2 startPos = centerPos + new Vector2(0, moveDistance);
+        Vector2 endPos = centerPos - new Vector2(0, moveDistance);
+
+        rectTransform.anchoredPosition = startPos;
+        float timer = 0f;
+        while (timer < appearDuration)
+        {
+            rectTransform.anchoredPosition = Vector2.Lerp(startPos, centerPos, timer / appearDuration);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        rectTransform.anchoredPosition = centerPos;
+
+        if (AudioManager.Instance != null && correctSound != null)
+        {
+            AudioManager.Instance.PlayOneShotSFX(correctSound, correctSoundVolume);
         }
 
         yield return new WaitForSeconds(stopDuration);

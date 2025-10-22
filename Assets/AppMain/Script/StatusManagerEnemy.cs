@@ -151,6 +151,11 @@ public class StatusManagerEnemy : MonoBehaviour
             {
                 questionManager.UpdateConsecutiveCorrectAnswers(false);
             }
+            if (comboTextUI != null)
+            {
+                comboTextUI.gameObject.SetActive(true);
+                comboTextUI.ShowIncorrectText();
+            }
             if(ScoreAnimeManager != null) ScoreAnimeManager.AddScore(-1000);
             if(SpawnEnemyMissManager.Instance != null) SpawnEnemyMissManager.Instance.MissEnemySpawn(this.gameObject);
         }
