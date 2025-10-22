@@ -29,7 +29,7 @@ public class ComboTextUI : MonoBehaviour
     public TMP_Text comboLabelTextObject;
     [Tooltip("「Good!」という文字を表示するテキストオブジェクト")]
     public TMP_Text correctLabelTextObject;
-    [Tooltip("「BAD」という文字を表示するテキストオブジェクト")]
+    [Tooltip("「Miss」という文字を表示するテキストオブジェクト")]
     public TMP_Text incorrectLabelTextObject;
     [Tooltip("ポイントを表示するテキストオブジェクト")]
     public TMP_Text pointsTextObject;
@@ -94,7 +94,7 @@ public class ComboTextUI : MonoBehaviour
         pointsTextObject.text = "";
         correctLabelTextObject.gameObject.SetActive(false);
         incorrectLabelTextObject.gameObject.SetActive(true);
-        incorrectLabelTextObject.text = "BAD";
+        incorrectLabelTextObject.text = "Miss";
 
         gameObject.SetActive(true);
         StartCoroutine(AnimateIncorrectText());
