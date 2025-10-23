@@ -214,7 +214,7 @@ public class StatusManagerEnemy : MonoBehaviour
             GameObject gem = ObjectPooler.Instance.GetPooledObject();
             if (gem != null)
             {
-                Vector3 spawnPosition = transform.position + Vector3.up * 0.1f;
+                Vector3 spawnPosition = transform.position + Vector3.up * 0.5f;
                 gem.transform.position = spawnPosition;
                 gem.transform.rotation = Quaternion.identity;
                 gem.SetActive(true);
