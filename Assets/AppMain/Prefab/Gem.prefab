@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 3076669605551186986}
   - component: {fileID: 7844753700849233494}
   - component: {fileID: 2302742310049536947}
-  - component: {fileID: 9124264276509077349}
   - component: {fileID: 2779232796946221043}
   - component: {fileID: 7806666777969712663}
   m_Layer: 0
@@ -139,29 +138,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
---- !u!136 &9124264276509077349
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1311676079619618908}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 2
-  m_Radius: 0.025
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: -1, z: 0}
 --- !u!114 &2779232796946221043
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -175,6 +151,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scoreValue: 100
+  minHeight: 1
+  hoverSpeed: 3
+  hoverAmount: 0.02
 --- !u!114 &7806666777969712663
 MonoBehaviour:
   m_ObjectHideFlags: 0
