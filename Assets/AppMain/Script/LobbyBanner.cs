@@ -60,6 +60,11 @@ public class LobbyBanner : MonoBehaviour
         joinButton.interactable = canJoin;
     }
 
+    public void SetJoinButtonInteractable(bool interactable)
+    {
+        joinButton.interactable = interactable;
+    }
+
     private void OnDestroy()
     {
         OnJoinClicked = null;
