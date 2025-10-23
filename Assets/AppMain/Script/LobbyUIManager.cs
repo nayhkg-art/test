@@ -460,7 +460,30 @@ public class LobbyUIManager : MonoBehaviour
     }
 
     private async void HandleRefreshClick() { await ProcessLobbyTask(lobbyServiceManager.RefreshLobbyListAsync(GameSelectionManager.SelectedGameType)); }
-    private async void HandleJoinClick(Lobby lobby) { await ProcessLobbyTask(lobbyServiceManager.JoinLobbyAsync(lobby)); }
+    private async void HandleJoinClick(Lobby lobby)
+    {
+        if (isProcessing) return;
+
+        isProcessing = true;
+        lobbyListView.SetAllJoinButtonsInteractable(false);
+        UpdateUI();
+        try
+        {
+            await lobbyServiceManager.JoinLobbyAsync(lobby);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"ロビー参加処理中にエラーが発生しました: {e.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+            // isProcessingがfalseになった後、UIが更新されるときにボタンが再度有効になるため、
+            // ここで明示的に有効化する必要は必ずしもないかもしれませんが、念のため。
+            lobbyListView.SetAllJoinButtonsInteractable(true);
+            UpdateUI();
+        }
+    }
     private async void HandleRetrySignInClick()
     {
         hasConnectionTimedOut = false;

@@ -72,4 +72,15 @@ public class LobbyListView : MonoBehaviour
     {
         refreshButton.interactable = interactable;
     }
+
+    public void SetAllJoinButtonsInteractable(bool interactable)
+    {
+        foreach (var banner in currentBanners)
+        {
+            if (banner != null)
+            {
+                banner.SetJoinButtonInteractable(interactable);
+            }
+        }
+    }
 }
