@@ -59,6 +59,18 @@ public class GameOverManager : NetworkBehaviour
     [Header("Stats Display Texts")]
     [SerializeField] private TMP_Text singlePlayerEnemiesDefeatedText;
 
+    [Header("Single Player Rank UI")]
+    [SerializeField] private GameObject rank_S_UI;
+    [SerializeField] private GameObject rank_A_UI;
+    [SerializeField] private GameObject rank_B_UI;
+    [SerializeField] private GameObject rank_C_UI;
+
+    [Header("Single Player Rank Sounds")]
+    [SerializeField] private AudioClip rank_S_Sound;
+    [SerializeField] private AudioClip rank_A_Sound;
+    [SerializeField] private AudioClip rank_B_Sound;
+    [SerializeField] private AudioClip rank_C_Sound;
+
 
     private void Awake()
     {
@@ -103,7 +115,7 @@ public class GameOverManager : NetworkBehaviour
         if (GameSelectionManager.Instance != null && GameSelectionManager.Instance.CurrentGameMode == GameSelectionManager.GameMode.SinglePlayer)
         {
             isGameOver.Value = true;
-            HandleSinglePlayerGameOver();
+            HandleSinglePlayerGameOver(reason);
             return;
         }
         else if (GameSelectionManager.Instance == null)
@@ -113,7 +125,7 @@ public class GameOverManager : NetworkBehaviour
             if (currentSelectedMode == GameSelectionManager.GameMode.SinglePlayer)
             {
                 isGameOver.Value = true;
-                HandleSinglePlayerGameOver();
+                HandleSinglePlayerGameOver(reason);
                 Debug.LogWarning("[GameOverManager] GameSelectionManager.Instance が null のため、PlayerPrefsからモードを読み込みました (一人用)。");
                 return;
             }
@@ -131,12 +143,11 @@ public class GameOverManager : NetworkBehaviour
         }
     }
 
-    private void HandleSinglePlayerGameOver()
+    private void HandleSinglePlayerGameOver(GameOverReason reason)
     {
         Debug.Log("一人用モードのゲームオーバー処理を開始します。");
         stop();
-        
-        // シングルプレイヤーモードでは敵消去処理をここに残します
+
         if (SpawnEnemyManager.Instance != null)
         {
             SpawnEnemyManager.Instance.StopAllSpawning();
@@ -162,6 +173,65 @@ public class GameOverManager : NetworkBehaviour
         if (audioManager != null)
         {
             StartCoroutine(WhiteOutAndResult(singlePlayerResultWindow, "PlayWinSound"));
+        }
+
+        // ランク計算と表示
+        StartCoroutine(ShowRankUI(reason));
+    }
+
+    private IEnumerator ShowRankUI(GameOverReason reason)
+    {
+        yield return new WaitForSeconds(2.0f); // 結果パネル表示から数秒待つ
+
+        GameObject rankUIToShow = null;
+        AudioClip rankSound = null;
+
+        // ランク判定
+        if (reason == GameOverReason.HPLoss || (reason == GameOverReason.Score && QuestionManager.DefeatEnemyNum < QuestionManager.TotalEnemyNum))
+        {
+            // HPが0になった、または時間切れで敵を全て倒せなかった
+            rankUIToShow = rank_C_UI;
+            rankSound = rank_C_Sound;
+        }
+        else
+        {
+            // 全ての敵を倒した
+            float accuracy = (float)QuestionManager.CorrectAnswerNum / QuestionManager.TotalEnemyNum;
+            if (accuracy >= 1.0f)
+            {
+                rankUIToShow = rank_S_UI;
+                rankSound = rank_S_Sound;
+            }
+            else if (accuracy >= 0.8f)
+            {
+                rankUIToShow = rank_A_UI;
+                rankSound = rank_A_Sound;
+            }
+            else
+            {
+                rankUIToShow = rank_B_UI;
+                rankSound = rank_B_Sound;
+            }
+        }
+
+        if (rankUIToShow != null)
+        {
+            rankUIToShow.SetActive(true);
+            // ここでアニメーションを再生する（例：Animatorを使い "SlideIn" トリガーを起動）
+            Animator animator = rankUIToShow.GetComponent<Animator>();
+            if (animator != null)
+            {
+                animator.SetTrigger("SlideIn");
+            }
+
+            // アニメーションの長さに合わせて待機（またはアニメーションイベントを使う）
+            // ここでは仮に1秒待つ
+            yield return new WaitForSeconds(1.0f);
+
+            if (rankSound != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(rankSound);
+            }
         }
     }
 

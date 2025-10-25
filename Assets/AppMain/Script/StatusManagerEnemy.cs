@@ -143,7 +143,6 @@ public class StatusManagerEnemy : MonoBehaviour
             SpawnGems();
             OnSendAttackMessage(this.gameObject);
             if(SpawnEnemyGoManager.Instance != null) SpawnEnemyGoManager.Instance.GoEnemySpawn(this.gameObject);
-            QuestionManager.CorrectAnswerNum += 1;
         }
         else
         {
@@ -178,6 +177,10 @@ public class StatusManagerEnemy : MonoBehaviour
                 }
             }
             QuestionManager.DefeatEnemyNum += 1;
+            if (isCorrect)
+            {
+                QuestionManager.CorrectAnswerNum += 1;
+            }
             if (SpawnEnemyManager.Instance != null) { SpawnEnemyManager.Instance.NotifyEnemyDestroyed(); }
         }
         else
