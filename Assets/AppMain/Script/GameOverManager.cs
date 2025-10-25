@@ -228,9 +228,9 @@ public class GameOverManager : NetworkBehaviour
             // ここでは仮に1秒待つ
             yield return new WaitForSeconds(1.0f);
 
-            if (rankSound != null && AudioManager.Instance != null)
+            if (rankSound != null && audioManager != null)
             {
-                AudioManager.Instance.PlayOneShotSFX(rankSound);
+                audioManager.PlayOneShotSFX(rankSound);
             }
         }
     }
