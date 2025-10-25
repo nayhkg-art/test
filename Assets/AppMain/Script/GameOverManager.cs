@@ -230,7 +230,7 @@ public class GameOverManager : NetworkBehaviour
 
             if (rankSound != null && AudioManager.Instance != null)
             {
-                AudioManager.Instance.PlaySFX(rankSound);
+                AudioManager.Instance.PlayOneShotSFX(rankSound);
             }
         }
     }
