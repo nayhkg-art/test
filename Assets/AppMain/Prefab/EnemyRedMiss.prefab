@@ -639,6 +639,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Blackboard
       objectReference: {fileID: 0}
+    - target: {fileID: 3173942426680096425, guid: abdca7d09dad645a2a964306795ca417, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3179534929524004605, guid: abdca7d09dad645a2a964306795ca417, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.25
