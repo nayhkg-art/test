@@ -98,8 +98,8 @@ public class AudioManager : MonoBehaviour
     void Start()
     {
         float masterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, 0.5f);
-        float bgmVolume = PlayerPrefs.GetFloat(BGMVolumeKey, 0.5f);
-        float sfxVolume = PlayerPrefs.GetFloat(SFXVolumeKey, 0.5f);
+        float bgmVolume = PlayerPrefs.GetFloat(BGMVolumeKey, 0.2f);
+        float sfxVolume = PlayerPrefs.GetFloat(SFXVolumeKey, 0.7f);
 
         SetMasterVolume(masterVolume);
         SetBGMVolume(bgmVolume);
@@ -272,6 +272,12 @@ public class AudioManager : MonoBehaviour
     public void PlayGemCollectSound(Vector3 position) { PlaySFXAtPoint(gemCollectSound, position); }
     public void PlayClickSound() { PlaySFX_2D(clickSound); }
     
+    public void PlaySFX(AudioClip clip) // ★★★ PlaySFX メソッドを定義 ★★★
+    {
+        // GameOverManager.csの呼び出しに対応するためのメソッド
+        PlayOneShotSFX(clip); 
+    }
+
     public void PlayGunshotSound(Vector3 position)
     {
         PlaySFXAtPoint(gunshotSound, position);

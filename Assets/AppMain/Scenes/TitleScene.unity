@@ -3248,7 +3248,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4868293395842692365, guid: 6b0b63df63b494687a5779b3853b0763, type: 3}
       propertyPath: m_Pitch
-      value: 1.1
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4868293395842692365, guid: 6b0b63df63b494687a5779b3853b0763, type: 3}
+      propertyPath: m_Volume
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4868293395842692365, guid: 6b0b63df63b494687a5779b3853b0763, type: 3}
       propertyPath: MinDistance

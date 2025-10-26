@@ -59,17 +59,25 @@ public class GameOverManager : NetworkBehaviour
     [Header("Stats Display Texts")]
     [SerializeField] private TMP_Text singlePlayerEnemiesDefeatedText;
 
+    // --- ▼▼▼ ここから修正 ▼▼▼ ---
     [Header("Single Player Rank UI")]
     [SerializeField] private GameObject rank_S_UI;
     [SerializeField] private GameObject rank_A_UI;
     [SerializeField] private GameObject rank_B_UI;
     [SerializeField] private GameObject rank_C_UI;
+    [SerializeField] private GameObject rank_D_UI;
+    [SerializeField] private GameObject rank_E_UI;
+    [SerializeField] private GameObject rank_F_UI;
 
     [Header("Single Player Rank Sounds")]
     [SerializeField] private AudioClip rank_S_Sound;
     [SerializeField] private AudioClip rank_A_Sound;
     [SerializeField] private AudioClip rank_B_Sound;
     [SerializeField] private AudioClip rank_C_Sound;
+    [SerializeField] private AudioClip rank_D_Sound;
+    [SerializeField] private AudioClip rank_E_Sound;
+    [SerializeField] private AudioClip rank_F_Sound;
+    // --- ▲▲▲ ここまで修正 ▲▲▲ ---
 
 
     private void Awake()
@@ -179,61 +187,100 @@ public class GameOverManager : NetworkBehaviour
         StartCoroutine(ShowRankUI(reason));
     }
 
+    // --- ▼▼▼ ここから修正 ▼▼▼ ---
     private IEnumerator ShowRankUI(GameOverReason reason)
     {
-        yield return new WaitForSeconds(2.0f); // 結果パネル表示から数秒待つ
+        yield return new WaitForSeconds(5.0f); // 結果パネル表示から数秒待つ
 
         GameObject rankUIToShow = null;
         AudioClip rankSound = null;
 
-        // ランク判定
-        if (reason == GameOverReason.HPLoss || (reason == GameOverReason.Score && QuestionManager.DefeatEnemyNum < QuestionManager.TotalEnemyNum))
+        // 正答率を計算 (TotalEnemyNumが0の場合のゼロ除算を防止)
+        float accuracy = 0f;
+        if (QuestionManager.TotalEnemyNum > 0)
         {
-            // HPが0になった、または時間切れで敵を全て倒せなかった
+            accuracy = (float)QuestionManager.CorrectAnswerNum / QuestionManager.TotalEnemyNum;
+        }
+
+        // 新しいランク基準で判定
+        if (accuracy >= 1.0f) // S: 100%
+        {
+            rankUIToShow = rank_S_UI;
+            rankSound = rank_S_Sound;
+        }
+        else if (accuracy >= 0.9f) // A: 90%以上
+        {
+            rankUIToShow = rank_A_UI;
+            rankSound = rank_A_Sound;
+        }
+        else if (accuracy >= 0.7f) // B: 70%以上
+        {
+            rankUIToShow = rank_B_UI;
+            rankSound = rank_B_Sound;
+        }
+        else if (accuracy >= 0.5f) // C: 50%以上
+        {
             rankUIToShow = rank_C_UI;
             rankSound = rank_C_Sound;
         }
-        else
+        else if (accuracy >= 0.3f) // D: 30%以上
         {
-            // 全ての敵を倒した
-            float accuracy = (float)QuestionManager.CorrectAnswerNum / QuestionManager.TotalEnemyNum;
-            if (accuracy >= 1.0f)
-            {
-                rankUIToShow = rank_S_UI;
-                rankSound = rank_S_Sound;
-            }
-            else if (accuracy >= 0.8f)
-            {
-                rankUIToShow = rank_A_UI;
-                rankSound = rank_A_Sound;
-            }
-            else
-            {
-                rankUIToShow = rank_B_UI;
-                rankSound = rank_B_Sound;
-            }
+            rankUIToShow = rank_D_UI;
+            rankSound = rank_D_Sound;
+        }
+        else if (accuracy > 0f) // E: 0%より上
+        {
+            rankUIToShow = rank_E_UI;
+            rankSound = rank_E_Sound;
+        }
+        else // F: 0%
+        {
+            rankUIToShow = rank_F_UI;
+            rankSound = rank_F_Sound;
         }
 
         if (rankUIToShow != null)
         {
-            rankUIToShow.SetActive(true);
-            // ここでアニメーションを再生する（例：Animatorを使い "SlideIn" トリガーを起動）
-            Animator animator = rankUIToShow.GetComponent<Animator>();
-            if (animator != null)
+            // Animator関連のコードを削除し、座標を直接操作する処理に変更
+            RectTransform rankRectTransform = rankUIToShow.GetComponent<RectTransform>();
+            if (rankRectTransform == null)
             {
-                animator.SetTrigger("SlideIn");
+                Debug.LogError("ランクUIにRectTransformがアタッチされていません！");
+                yield break;
             }
 
-            // アニメーションの長さに合わせて待機（またはアニメーションイベントを使う）
-            // ここでは仮に1秒待つ
-            yield return new WaitForSeconds(1.0f);
+            // --- アニメーションの設定 ---
+            float animationDuration = 0.5f; // アニメーションの時間（秒）
+            float startPositionX = 800f;   // 開始位置のX座標
+            Vector2 targetPosition = rankRectTransform.anchoredPosition; // Inspectorで設定された本来の位置を目標地点とする
+            Vector2 startPosition = new Vector2(startPositionX, targetPosition.y); // 開始位置
 
+            // --- アニメーションの実行 ---
+            rankRectTransform.anchoredPosition = startPosition; // 開始位置に移動
+            rankUIToShow.SetActive(true); // UIをアクティブにする
+
+            float elapsedTime = 0f;
+            while (elapsedTime < animationDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                // SmoothStepを使って、開始時と終了時に少しゆっくりになるようなイージングをかける
+                float t = Mathf.SmoothStep(0f, 1f, elapsedTime / animationDuration);
+                // Lerpで開始位置と目標位置の間を補間する
+                rankRectTransform.anchoredPosition = Vector2.Lerp(startPosition, targetPosition, t);
+                yield return null; // 1フレーム待つ
+            }
+
+            // 念のため、アニメーション終了後に正確な位置に設定
+            rankRectTransform.anchoredPosition = targetPosition;
+
+            // アニメーションが終わった後にサウンドを再生
             if (rankSound != null && AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlaySFX(rankSound);
             }
         }
     }
+    // --- ▲▲▲ ここまで修正 ▲▲▲ ---
 
     private IEnumerator SendGameOverRepeatedly()
     {

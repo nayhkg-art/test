@@ -8,7 +8,7 @@ public class StatusManagerPlayer : MonoBehaviour
 {
     public int HP;
     public int MaxHP;
-    // public float DamegeIntervalTime; // ← 不要なので削除
+    // public float DamegeIntervalTime = 1.0f; // ★ 復活させ、インスペクターで1に設定
     public int BombHP;
     public int HealHP;
     public int TouchDamageHP;
@@ -29,7 +29,7 @@ public class StatusManagerPlayer : MonoBehaviour
 
     private Heartbeat heartbeat;
 
-    // private bool isInvincible = false; // ← 不要なので削除
+    // private bool isInvincible = false; // ★ 復活
     private float GageSpeed = 3f;
     private float FillGageTarget;
     private float gameOverTimer = 0f;
@@ -86,9 +86,11 @@ public class StatusManagerPlayer : MonoBehaviour
         CheckHpAndToggleWarningUI();
     }
     
-    // TakeDamageメソッドは残しておきますが、今回は使っていません
     public void TakeDamage(int damageAmount)
     {
+        // isInvincibleチェックを追加しても良い
+        // if (isInvincible) return;
+
         HP -= damageAmount;
         if (HP < 0) HP = 0;
         
@@ -98,21 +100,22 @@ public class StatusManagerPlayer : MonoBehaviour
         {
             cameraController.TriggerShake(cameraController.contactShakeDuration, cameraController.contactShakeMagnitude);
         }
+        
+        // TakeDamage経由でも無敵時間を開始する
+        // StartCoroutine(InvincibleRoutine());
     }
     
-    // --- ▼▼▼ 無敵時間の関連コードをすべて削除 ▼▼▼ ---
-    /*
-    private IEnumerator InvincibleRoutine()
-    {
-        isInvincible = true;
-        yield return new WaitForSeconds(DamegeIntervalTime);
-        isInvincible = false;
-    }
-    */
+    // --- ▼▼▼ 無敵時間のロジックを復活 ▼▼▼ ---
+    // private IEnumerator InvincibleRoutine()
+    // {
+    //     isInvincible = true;
+    //     yield return new WaitForSeconds(DamegeIntervalTime);
+    //     isInvincible = false;
+    // }
     
     public void TouchDamage()
     {
-        // if (isInvincible) return; // ← 無敵チェックを削除
+        // if (isInvincible) return; // ← 無敵チェックを復活
 
         HP -= TouchDamageHP;
         if (HP < 0) HP = 0;
@@ -124,10 +127,24 @@ public class StatusManagerPlayer : MonoBehaviour
             cameraController.TriggerShake(cameraController.contactShakeDuration, cameraController.contactShakeMagnitude);
         }
 
-        // StartCoroutine(InvincibleRoutine()); // ← 無敵開始の呼び出しを削除
+        // StartCoroutine(InvincibleRoutine()); // ← 無敵開始の呼び出しを復活
     }
     // --- ▲▲▲ ここまで変更 ▲▲▲ ---
 
+    // --- ▼▼▼ OnCollisionEnter から OnCollisionStay に変更 ▼▼▼ ---
+    private void OnCollisionStay(Collision collision)
+    {
+        // 衝突相手のタグが "Enemy" であることを確認
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            // 無敵でなければダメージ処理を呼び出す
+            // if (!isInvincible)
+            // {
+                TouchDamage();
+            // }
+        }
+    }
+    // --- ▲▲▲ ここまで変更 ▲▲▲ ---
 
     public void BombDamage()
     {
