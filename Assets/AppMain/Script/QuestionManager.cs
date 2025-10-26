@@ -38,6 +38,7 @@ public class QuestionManager : MonoBehaviour
     public TMP_Text DefeatEnemyNumText;
     public TMP_Text TotalEnemyNumText;
     public TMP_Text RemainingEnemyNumText;
+    public TMP_Text CorrectAnswerNumText;
     public TMP_Text TextQuestionJ;
     public TMP_Text TextQuestionT;
     public TMP_Text TextQuestionKanjiDisplay;
@@ -138,6 +139,7 @@ public class QuestionManager : MonoBehaviour
         DefeatEnemyNumText.text = DefeatEnemyNum.ToString();
         RemainingEnemyNumText.text = RemainingEnemyNum.ToString();
         // RemainingEnemyNumText.text = "のこり " + RemainingEnemyNum.ToString();
+        CorrectAnswerNumText.text = $"正解数: {CorrectAnswerNum}";
 
 
         if (DefeatEnemyNum >= TotalEnemyNum)
