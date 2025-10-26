@@ -898,6 +898,7 @@ MonoBehaviour:
   initialTotalEnemyNum: 3
   DefeatEnemyNumText: {fileID: 465116699}
   TotalEnemyNumText: {fileID: 1416467658}
+  RemainingEnemyNumText: {fileID: 1594227053}
   TextQuestionJ: {fileID: 1705414453}
   TextQuestionT: {fileID: 1146362740}
   TextQuestionKanjiDisplay: {fileID: 995956327}
@@ -7929,7 +7930,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 439, y: -56.899902}
+  m_AnchoredPosition: {x: 331, y: -56.899902}
   m_SizeDelta: {x: 350, y: 100}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &465116699
@@ -7986,7 +7987,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 2
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 4
   m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -20813,7 +20814,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 99
+  m_text: /999
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}
   m_sharedMaterial: {fileID: 2140474, guid: 8a89fa14b10d46a99122fd4f73fca9a2, type: 2}
@@ -20847,7 +20848,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 2
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 1
   m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -20908,7 +20909,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 439, y: -56.899902}
+  m_AnchoredPosition: {x: 530, y: -56.899902}
   m_SizeDelta: {x: 350, y: 100}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!4 &1418328098 stripped
@@ -24203,7 +24204,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 439, y: -56.899902}
+  m_AnchoredPosition: {x: -705, y: -138}
   m_SizeDelta: {x: 350, y: 100}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1594227053
