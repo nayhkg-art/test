@@ -34,8 +34,7 @@ public class QuestionManager : MonoBehaviour
     public static float TotalEnemyNum;
 
     [Header("UI参照")]
-    public TMP_Text DefeatEnemyNumText;
-    public TMP_Text TotalEnemyNumText;
+    public TMP_Text RemainingQuestionsText; // 残り問題数を表示するテキスト
     public TMP_Text TextQuestionJ;
     public TMP_Text TextQuestionT;
     public TMP_Text TextQuestionKanjiDisplay;
@@ -121,7 +120,10 @@ public class QuestionManager : MonoBehaviour
         // --- 変更点：連続正解数を初期化 ---
         consecutiveCorrectAnswers = 0;
 
-        TotalEnemyNumText.text = $" / {TotalEnemyNum}";
+        if (RemainingQuestionsText != null)
+        {
+            RemainingQuestionsText.text = TotalEnemyNum.ToString();
+        }
 
         if (TextQuestionT != null) TextQuestionT.gameObject.SetActive(false);
         if (TextQuestionJ != null) TextQuestionJ.gameObject.SetActive(false);
@@ -132,7 +134,11 @@ public class QuestionManager : MonoBehaviour
 
     void Update()
     {
-        DefeatEnemyNumText.text = DefeatEnemyNum.ToString();
+        if (RemainingQuestionsText != null)
+        {
+            float remaining = TotalEnemyNum - DefeatEnemyNum;
+            RemainingQuestionsText.text = Mathf.Max(0, Mathf.FloorToInt(remaining)).ToString();
+        }
 
         if (DefeatEnemyNum >= TotalEnemyNum)
         {
