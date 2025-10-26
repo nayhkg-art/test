@@ -32,10 +32,12 @@ public class QuestionManager : MonoBehaviour
     public static float CorrectAnswerNum;
     [SerializeField] private float initialTotalEnemyNum = 10f;
     public static float TotalEnemyNum;
+    public static float RemainingEnemyNum;
 
     [Header("UI参照")]
     public TMP_Text DefeatEnemyNumText;
     public TMP_Text TotalEnemyNumText;
+    public TMP_Text RemainingEnemyNumText;
     public TMP_Text TextQuestionJ;
     public TMP_Text TextQuestionT;
     public TMP_Text TextQuestionKanjiDisplay;
@@ -113,6 +115,7 @@ public class QuestionManager : MonoBehaviour
     public void Start()
     {
         TotalEnemyNum = initialTotalEnemyNum;
+        RemainingEnemyNum = TotalEnemyNum;
         Time.timeScale = 1;
 
         DefeatEnemyNum = 0;
@@ -133,6 +136,7 @@ public class QuestionManager : MonoBehaviour
     void Update()
     {
         DefeatEnemyNumText.text = DefeatEnemyNum.ToString();
+        RemainingEnemyNumText.text = "のこり " + RemainingEnemyNum.ToString();
 
         if (DefeatEnemyNum >= TotalEnemyNum)
         {
@@ -160,6 +164,14 @@ public class QuestionManager : MonoBehaviour
         {
             Debug.LogWarning("[QuestionManager] 自動詞他動詞の問題リストが空になりました。リストを再ロードします。");
             ListSet();
+        }
+    }
+
+    public void DecrementRemainingQuestions()
+    {
+        if (RemainingEnemyNum > 0)
+        {
+            RemainingEnemyNum--;
         }
     }
 

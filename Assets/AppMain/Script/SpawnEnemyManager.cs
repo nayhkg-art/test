@@ -205,6 +205,12 @@ public class SpawnEnemyManager : MonoBehaviour
     {
         if (isSpawningStopped) return;
 
+        QuestionManager qm = FindFirstObjectByType<QuestionManager>();
+        if (qm != null)
+        {
+            qm.DecrementRemainingQuestions();
+        }
+
         GameType selectedGameType = (GameType)PlayerPrefs.GetInt("SelectedGameType", (int)GameType.JidoushiTadoushi);
         List<Transform> availableSpawnPoints = new List<Transform>(spawnPoints);
         Shuffle(availableSpawnPoints);
