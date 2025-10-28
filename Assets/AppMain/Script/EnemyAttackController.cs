@@ -13,7 +13,7 @@ public class EnemyAttackController : MonoBehaviour
 
     [Header("攻撃設定")]
     [SerializeField] private float attackRange = 2f; // 攻撃が可能な距離
-    [SerializeField] private float attackInterval = 2f; // 次の攻撃までの時間
+    [SerializeField] private float attackInterval = 1f; // 次の攻撃までの時間
     private float attackCooldownTimer = 0f; // 攻撃のクールダウンを管理するタイマー
 
     void Start()
