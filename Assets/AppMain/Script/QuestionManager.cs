@@ -115,7 +115,17 @@ public class QuestionManager : MonoBehaviour
 
     public void Start()
     {
-        TotalEnemyNum = initialTotalEnemyNum;
+        ListSet();
+
+        if (GameSelectionManager.Instance != null && GameSelectionManager.Instance.CurrentGameMode == GameSelectionManager.GameMode.SinglePlayer)
+        {
+            TotalEnemyNum = CurrentList.Count;
+        }
+        else
+        {
+            TotalEnemyNum = initialTotalEnemyNum;
+        }
+
         RemainingEnemyNum = TotalEnemyNum;
         Time.timeScale = 1;
 
@@ -130,8 +140,6 @@ public class QuestionManager : MonoBehaviour
         if (TextQuestionT != null) TextQuestionT.gameObject.SetActive(false);
         if (TextQuestionJ != null) TextQuestionJ.gameObject.SetActive(false);
         if (TextQuestionKanjiDisplay != null) TextQuestionKanjiDisplay.gameObject.SetActive(false);
-
-        ListSet();
     }
 
     void Update()
