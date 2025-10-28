@@ -24,6 +24,24 @@ public class GameSelectionUIManager : MonoBehaviour
     [Header("Navigation Buttons")]
     [SerializeField] private Button backToTitleButton;
 
+    // ▼▼▼ 以下を追加 ▼▼▼
+    [Header("Lock Icons")]
+    [Tooltip("購入が必要なゲームモードのボタンに表示するロックアイコン")]
+    [SerializeField] private GameObject keigoLock;
+    [SerializeField] private GameObject hiraganaLock;
+    [SerializeField] private GameObject katakanaLock;
+    [SerializeField] private GameObject yohoonLock;
+    [SerializeField] private GameObject kanjiN5Lock;
+    [SerializeField] private GameObject kanjiN4Lock;
+    [SerializeField] private GameObject kanjiN3Lock;
+    [SerializeField] private GameObject kanjiN2Lock;
+    [SerializeField] private GameObject kanjiN1Lock;
+    [SerializeField] private GameObject katakanaEigoLock;
+    [SerializeField] private GameObject hinshiLock;
+    [SerializeField] private GameObject groupLock;
+    [SerializeField] private GameObject firstKanjiLock;
+    // ▲▲▲ ここまで追加 ▲▲▲
+
     void Start()
     {
         if (GameSelectionManager.Instance == null)
@@ -33,6 +51,54 @@ public class GameSelectionUIManager : MonoBehaviour
         }
 
         // 各ボタンのOnClickイベントにリスナーを追加
+        AddListeners();
+
+        // ▼▼▼ 以下を追加 ▼▼▼
+        // IAPManagerのインスタンスが存在するか確認
+        if (IAPManager.Instance != null)
+        {
+            // IAPが既に初期化済みかチェック
+            if (IAPManager.Instance.IsInitialized)
+            {
+                // 初期化済みなら、すぐにUIを更新
+                UpdateLockIcons();
+            }
+            else
+            {
+                // まだなら、初期化完了イベントを購読
+                IAPManager.Instance.OnIapInitialized += UpdateLockIcons;
+            }
+            // 購入成功イベントを購読（購入直後にUIを更新するため）
+            IAPManager.Instance.OnPurchaseSuccess += OnPurchaseCompleted;
+        }
+        else
+        {
+            Debug.LogError("[GameSelectionUIManager] IAPManager.Instance が見つかりません。");
+        }
+        // ▲▲▲ ここまで追加 ▲▲▲
+    }
+
+    void OnDestroy()
+    {
+        // ▼▼▼ イベント購読解除処理を修正 ▼▼▼
+        RemoveListeners(); // リスナー削除処理をメソッドにまとめる
+
+        if (IAPManager.Instance != null)
+        {
+            // 購読したイベントを解除
+            IAPManager.Instance.OnIapInitialized -= UpdateLockIcons;
+            IAPManager.Instance.OnPurchaseSuccess -= OnPurchaseCompleted;
+        }
+        // ▲▲▲ ここまで修正 ▲▲▲
+    }
+    
+    // ▼▼▼ 以下を全て追加 ▼▼▼
+
+    /// <summary>
+    /// 各ボタンにリスナーを登録します。
+    /// </summary>
+    private void AddListeners()
+    {
         AddListener(jidoushiTadoushiButton, GameSelectionManager.Instance.OnJidoushiTadoushiSelected);
         AddListener(keigoButton, GameSelectionManager.Instance.OnKeigoSelected);
         AddListener(hiraganaButton, GameSelectionManager.Instance.OnHiraganaSelected);
@@ -51,16 +117,18 @@ public class GameSelectionUIManager : MonoBehaviour
         AddListener(backToTitleButton, GameSelectionManager.Instance.OnBackToTitle);
     }
 
-    void OnDestroy()
+    /// <summary>
+    /// 各ボタンからリスナーを解除します。
+    /// </summary>
+    private void RemoveListeners()
     {
-        if (GameSelectionManager.Instance == null) return; // Instanceがない場合は何もしない
+        if (GameSelectionManager.Instance == null) return;
 
-        // リスナーを削除
         RemoveListener(jidoushiTadoushiButton, GameSelectionManager.Instance.OnJidoushiTadoushiSelected);
         RemoveListener(keigoButton, GameSelectionManager.Instance.OnKeigoSelected);
         RemoveListener(hiraganaButton, GameSelectionManager.Instance.OnHiraganaSelected);
         RemoveListener(katakanaButton, GameSelectionManager.Instance.OnKatakanaSelected);
-        RemoveListener(yohoonButton, GameSelectionManager.Instance.OnYohoonSelected); // 修正: Katakana -> Yohoon
+        RemoveListener(yohoonButton, GameSelectionManager.Instance.OnYohoonSelected);
         RemoveListener(kanjiWarmUpButton, GameSelectionManager.Instance.OnKanjiWarmUpSelected);
         RemoveListener(kanjiN5Button, GameSelectionManager.Instance.OnKanjiN5Selected);
         RemoveListener(kanjiN4Button, GameSelectionManager.Instance.OnKanjiN4Selected);
@@ -73,6 +141,55 @@ public class GameSelectionUIManager : MonoBehaviour
         RemoveListener(firstKanjiButton, GameSelectionManager.Instance.OnFirstKanjiSelected);
         RemoveListener(backToTitleButton, GameSelectionManager.Instance.OnBackToTitle);
     }
+    
+    /// <summary>
+    /// 購入状態に基づいてロックアイコンの表示/非表示を更新します。
+    /// </summary>
+    private void UpdateLockIcons()
+    {
+        Debug.Log("ロックアイコンの表示状態を更新します。");
+        SetLockIconState(keigoLock,       IAPManager.ProductIds[GameType.Keigo]);
+        SetLockIconState(hiraganaLock,    IAPManager.ProductIds[GameType.Hiragana]);
+        SetLockIconState(katakanaLock,    IAPManager.ProductIds[GameType.Katakana]);
+        SetLockIconState(yohoonLock,      IAPManager.ProductIds[GameType.Yohoon]);
+        SetLockIconState(kanjiN5Lock,     IAPManager.ProductIds[GameType.KanjiN5]);
+        SetLockIconState(kanjiN4Lock,     IAPManager.ProductIds[GameType.KanjiN4]);
+        SetLockIconState(kanjiN3Lock,     IAPManager.ProductIds[GameType.KanjiN3]);
+        SetLockIconState(kanjiN2Lock,     IAPManager.ProductIds[GameType.KanjiN2]);
+        SetLockIconState(kanjiN1Lock,     IAPManager.ProductIds[GameType.KanjiN1]);
+        SetLockIconState(katakanaEigoLock,IAPManager.ProductIds[GameType.KatakanaEigo]);
+        SetLockIconState(hinshiLock,      IAPManager.ProductIds[GameType.Hinshi]);
+        SetLockIconState(groupLock,       IAPManager.ProductIds[GameType.Group]);
+        SetLockIconState(firstKanjiLock,  IAPManager.ProductIds[GameType.FirstKanji]);
+    }
+
+    /// <summary>
+    /// 指定されたプロダクトIDの購入状態に応じて、対応するロックアイコンのGameObjectをアクティブ/非アクティブにします。
+    /// </summary>
+    /// <param name="lockIcon">対象のロックアイコンGameObject</param>
+    /// <param name="productId">チェックするプロダクトID</param>
+    private void SetLockIconState(GameObject lockIcon, string productId)
+    {
+        if (lockIcon != null)
+        {
+            // IAPManagerから購入状態を取得
+            bool isPurchased = IAPManager.Instance.IsProductPurchased(productId);
+            // 購入済みなら非表示 (false)、未購入なら表示 (true)
+            lockIcon.SetActive(!isPurchased);
+        }
+    }
+    
+    /// <summary>
+    /// IAPManagerのOnPurchaseSuccessイベントから呼び出されるハンドラ。
+    /// </summary>
+    /// <param name="productId">購入された商品のID（このメソッドでは未使用）</param>
+    private void OnPurchaseCompleted(string productId)
+    {
+        // 購入が成功したらUIを更新する
+        Debug.Log($"購入成功({productId})を検知。UIを更新します。");
+        UpdateLockIcons();
+    }
+    // ▲▲▲ ここまで全て追加 ▲▲▲
 
     // リスナーを追加するヘルパーメソッド
     private void AddListener(Button button, UnityEngine.Events.UnityAction call)
@@ -100,12 +217,13 @@ public class GameSelectionUIManager : MonoBehaviour
         if (IAPManager.Instance != null)
         {
             IAPManager.Instance.ClearAllPurchaseData_DEBUG();
+            // リセット後、UIも即時反映させる
+            UpdateLockIcons();
         }
         else
         {
             Debug.LogError("IAPManagerのインスタンスが見つかりません！");
         }
     }
-    // ▼▼▼ この行を追加 ▼▼▼
 #endif
 }

@@ -16,10 +16,13 @@ public class LobbyServiceManager : MonoBehaviour
     public event Action<List<Lobby>> OnLobbyListUpdated;
     public const string KEY_RELAY_CODE = "RelayCode";
     public const string KEY_GAME_TYPE = "GameType";
-    // ▼▼▼ 修正点 1: 表示名用のキーを追加 ▼▼▼
     public const string KEY_DISPLAY_NAME = "DisplayName";
     private const float HEARTBEAT_INTERVAL = 15f;
     private const float POLLING_INTERVAL = 2.0f;
+    // --- ▼▼▼ ここから変更 ▼▼▼ ---
+    private const int MAX_RETRY_ATTEMPTS = 3; // 最大リトライ回数
+    private const int RETRY_INTERVAL_MS = 2000; // リトライ間隔（ミリ秒）
+    // --- ▲▲▲ ここまで変更 ▲▲▲ ---
     private float heartbeatTimer;
     private float pollingTimer;
     private bool isPolling = false;
@@ -106,16 +109,13 @@ public class LobbyServiceManager : MonoBehaviour
             Debug.Log($"一時ロビー作成成功: {createdLobby.Name} (ID: {createdLobby.Id})");
 
             string lobbyIdPrefix = createdLobby.Id.Substring(0, 4);
-            // 検索用の名前は元のまま変更しない
             string finalLobbyName = $"[{gameType.ToString()}]- Room [{lobbyIdPrefix}]";
-            // ▼▼▼ 修正点 2: 表示用の名前を別途作成 ▼▼▼
             string displayName = $"Room [ {lobbyIdPrefix} ]";
 
             Debug.Log($"ロビー名を「{finalLobbyName}」に更新します。");
             UpdateLobbyOptions updateOptions = new UpdateLobbyOptions
             {
                 Name = finalLobbyName,
-                // ▼▼▼ 修正点 3: 表示名データをロビーに追加 ▼▼▼
                 Data = new Dictionary<string, DataObject>
                 {
                     { KEY_DISPLAY_NAME, new DataObject(DataObject.VisibilityOptions.Public, displayName) }
@@ -161,7 +161,6 @@ public class LobbyServiceManager : MonoBehaviour
                 return null;
             }
 
-            // 検索用の名前は元のまま変更しない
             string finalLobbyName = isPrivate ? $"{gameType.ToString()}-{lobbyName}" : lobbyName;
 
             CreateLobbyOptions options = new CreateLobbyOptions
@@ -172,8 +171,6 @@ public class LobbyServiceManager : MonoBehaviour
                 {
                     { KEY_RELAY_CODE, new DataObject(DataObject.VisibilityOptions.Member, relayCode) },
                     { KEY_GAME_TYPE, new DataObject(DataObject.VisibilityOptions.Public, gameType.ToString()) },
-                    // ▼▼▼ 修正点 4: 表示名データをロビーに追加 ▼▼▼
-                    // (ユーザーが入力した名前をそのまま表示名として使用)
                     { KEY_DISPLAY_NAME, new DataObject(DataObject.VisibilityOptions.Public, lobbyName) }
                 }
             };
@@ -205,25 +202,37 @@ public class LobbyServiceManager : MonoBehaviour
             return false;
         }
 
-        try
+        // --- ▼▼▼ ここから変更 ▼▼▼ ---
+        for (int i = 0; i < MAX_RETRY_ATTEMPTS; i++)
         {
-            JoinLobbyByCodeOptions options = new JoinLobbyByCodeOptions
+            try
             {
-                Player = new Player(AuthManager.Instance.PlayerId)
-            };
+                Debug.Log($"Lobby Code '{lobbyCode}' での参加を試みます... ({i + 1}/{MAX_RETRY_ATTEMPTS})");
+                JoinLobbyByCodeOptions options = new JoinLobbyByCodeOptions
+                {
+                    Player = new Player(AuthManager.Instance.PlayerId)
+                };
 
-            Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, options);
-            JoinedLobby = lobby;
-            isPolling = true;
-            Debug.Log($"Lobby Code '{lobbyCode}' での参加成功: {lobby.Name} (ID: {lobby.Id})");
-            OnJoinedLobby?.Invoke(JoinedLobby);
-            return true;
+                Lobby lobby = await LobbyService.Instance.JoinLobbyByCodeAsync(lobbyCode, options);
+                JoinedLobby = lobby;
+                isPolling = true;
+                Debug.Log($"Lobby Code '{lobbyCode}' での参加成功: {lobby.Name} (ID: {lobby.Id})");
+                OnJoinedLobby?.Invoke(JoinedLobby);
+                return true; // 成功
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.LogWarning($"Lobby Codeでの参加に失敗しました (試行回数: {i + 1}): {e.Message}");
+                if (i < MAX_RETRY_ATTEMPTS - 1)
+                {
+                    await Task.Delay(RETRY_INTERVAL_MS);
+                }
+            }
         }
-        catch (LobbyServiceException e)
-        {
-            Debug.LogError($"Lobby Code での参加エラー: {e.Message}");
-            return false;
-        }
+
+        Debug.LogError("複数回の試行後もLobby Codeでの参加に失敗しました。");
+        return false; // 全てのリトライが失敗
+        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
     }
 
     public async Task<bool> JoinLobbyAsync(Lobby lobbyToJoin)
@@ -234,25 +243,36 @@ public class LobbyServiceManager : MonoBehaviour
             return false;
         }
 
-        try
+        // --- ▼▼▼ ここから変更 ▼▼▼ ---
+        for (int i = 0; i < MAX_RETRY_ATTEMPTS; i++)
         {
-            JoinLobbyByIdOptions options = new JoinLobbyByIdOptions
+            try
             {
-                Player = new Player(AuthManager.Instance.PlayerId)
-            };
+                Debug.Log($"ロビーへの参加を試みます... ({i + 1}/{MAX_RETRY_ATTEMPTS}) ID: {lobbyToJoin.Id}");
+                JoinLobbyByIdOptions options = new JoinLobbyByIdOptions
+                {
+                    Player = new Player(AuthManager.Instance.PlayerId)
+                };
 
-            Lobby lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyToJoin.Id, options);
-            JoinedLobby = lobby;
-            isPolling = true;
-            Debug.Log($"ロビー参加成功: {lobby.Name} (ID: {lobby.Id})");
-            OnJoinedLobby?.Invoke(JoinedLobby);
-            return true;
+                Lobby lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyToJoin.Id, options);
+                JoinedLobby = lobby;
+                isPolling = true;
+                Debug.Log($"ロビー参加成功: {lobby.Name} (ID: {lobby.Id})");
+                OnJoinedLobby?.Invoke(JoinedLobby);
+                return true; // 成功
+            }
+            catch (LobbyServiceException e)
+            {
+                Debug.LogWarning($"参加に失敗しました (試行回数: {i + 1}): {e.Message}");
+                if (i < MAX_RETRY_ATTEMPTS - 1)
+                {
+                    await Task.Delay(RETRY_INTERVAL_MS);
+                }
+            }
         }
-        catch (LobbyServiceException e)
-        {
-            Debug.LogError($"ロビー参加エラー: {e.Message}");
-            return false;
-        }
+        Debug.LogError("複数回の試行後もロビーへの参加に失敗しました。");
+        return false; // 全てのリトライが失敗
+        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
     }
 
     public async Task LeaveLobbyAsync()

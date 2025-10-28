@@ -27,6 +27,12 @@ public class LobbyUIManager : MonoBehaviour
     [SerializeField] private InternetConnectionMonitor internetMonitor;
     [SerializeField] private TextMeshProUGUI selectedGameTypeText;
 
+    // --- ▼▼▼ ここから追加 ▼▼▼ ---
+    [Header("Connection Status UI")]
+    [SerializeField] private GameObject connectionWarningPanel; // 接続失敗時に表示するパネル
+    [SerializeField] private Button closeWarningButton; // 警告パネルを閉じるボタン
+    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
+
     [Header("Public Lobby Area")]
     [SerializeField] private GameObject publicLobbyArea;
     [SerializeField] private Button createLobbyButton;
@@ -100,6 +106,9 @@ public class LobbyUIManager : MonoBehaviour
         if (joinByCodeButton != null) joinByCodeButton.onClick.AddListener(HandleJoinByCodeClick);
         if (backFromPrivateAreaButton != null) backFromPrivateAreaButton.onClick.AddListener(ShowPublicLobbyArea);
         if (backFromHostWaitButton != null) backFromHostWaitButton.onClick.AddListener(HandleRemoveClick);
+        // --- ▼▼▼ ここから追加 ▼▼▼ ---
+        if (closeWarningButton != null) closeWarningButton.onClick.AddListener(HideConnectionWarning);
+        // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
         UpdateUI();
     }
@@ -136,7 +145,20 @@ public class LobbyUIManager : MonoBehaviour
         if (joinByCodeButton != null) joinByCodeButton.onClick.RemoveListener(HandleJoinByCodeClick);
         if (backFromPrivateAreaButton != null) backFromPrivateAreaButton.onClick.RemoveListener(ShowPublicLobbyArea);
         if (backFromHostWaitButton != null) backFromHostWaitButton.onClick.RemoveListener(HandleRemoveClick);
+        // --- ▼▼▼ ここから追加 ▼▼▼ ---
+        if (closeWarningButton != null) closeWarningButton.onClick.RemoveListener(HideConnectionWarning);
+        // --- ▲▲▲ ここまで追加 ▲▲▲ ---
     }
+    
+    // --- ▼▼▼ ここから追加 ▼▼▼ ---
+    private void HideConnectionWarning()
+    {
+        if (connectionWarningPanel != null)
+        {
+            connectionWarningPanel.SetActive(false);
+        }
+    }
+    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
     private void ShowPublicLobbyArea() { isShowingPrivateArea = false; UpdateUI(); }
     private void ShowPrivateLobbyArea() { isShowingPrivateArea = true; UpdateUI(); }
@@ -191,45 +213,23 @@ public class LobbyUIManager : MonoBehaviour
             SetStatus("Lobby Code を入力してください。");
             return;
         }
-        string lobbyCode = lobbyCodeInput.text.Trim().ToUpper();
-        await JoinLobbyWithRetriesAsync(() => lobbyServiceManager.JoinLobbyByCodeAsync(lobbyCode), $"code '{lobbyCode}'");
-    }
 
-    private async Task<bool> JoinLobbyWithRetriesAsync(Func<Task<bool>> joinAction, string lobbyIdentifier)
-    {
+        // --- ▼▼▼ ここから変更 ▼▼▼ ---
         isProcessing = true;
+        SetStatus("ロビーに接続中...");
         UpdateUI();
 
-        const int maxRetries = 3;
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
-        {
-            SetStatus($"Trying to join lobby '{lobbyIdentifier}'... ({attempt}/{maxRetries})");
-            try
-            {
-                bool success = await joinAction();
-                if (success)
-                {
-                    SetStatus($"Successfully joined lobby '{lobbyIdentifier}'.");
-                    isProcessing = false;
-                    UpdateUI();
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"Attempt #{attempt} to join lobby failed: {e.Message}");
-            }
-
-            if (attempt < maxRetries)
-            {
-                await Task.Delay(2000);
-            }
-        }
-
-        SetStatus("Failed to join the lobby.\nPlease check your internet connection and try again.");
+        bool success = await lobbyServiceManager.JoinLobbyByCodeAsync(lobbyCodeInput.text.Trim().ToUpper());
+        
         isProcessing = false;
+        if (!success)
+        {
+            // 失敗した場合、警告パネルを表示
+            if (connectionWarningPanel != null) connectionWarningPanel.SetActive(true);
+        }
+        
         UpdateUI();
-        return false;
+        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
     }
 
     private async Task ProcessLobbyTask(Task task)
@@ -370,8 +370,6 @@ public class LobbyUIManager : MonoBehaviour
 
     private string GetGameTypeNameInJapanese(GameType gameType)
     {
-        // GameTypeに応じて日本語名を返します。
-        // GameSelectionManagerで定義されているGameTypeに合わせて、caseを修正・追加してください。
         switch (gameType)
         {
             case GameType.None:
@@ -386,18 +384,6 @@ public class LobbyUIManager : MonoBehaviour
                 return "カタカナ";
             case GameType.Yohoon:
                 return "バビブ・キャキュキョ";
-            // case GameType.KanjiWarmUp:
-            //     return "漢字ウォーミングアップ";
-            // case GameType.KanjiN5:
-            //     return "漢字N5レベル";
-            // case GameType.KanjiN4:
-            //     return "漢字N4レベル";
-            // case GameType.KanjiN3:
-            //     return "漢字N3レベル";
-            // case GameType.KanjiN2:
-            //     return "漢字N2レベル";
-            // case GameType.KanjiN1:
-            //     return "漢字N1レベル";
             case GameType.KatakanaEigo:
                 return "カタカナえいご";
             case GameType.Hinshi:
@@ -502,25 +488,34 @@ public class LobbyUIManager : MonoBehaviour
     {
         if (isProcessing) return;
 
+        // --- ▼▼▼ ここから変更 ▼▼▼ ---
+        isProcessing = true;
         lobbyListView.SetAllJoinButtonsInteractable(false);
+        SetStatus("ロビーに接続中...");
+        UpdateUI();
 
-        // ロビー名を取得しようと試みます。表示名キーが存在すればそれを使用し、なければ元の名前を使います。
-        string lobbyDisplayName = lobby.Name;
-        if (lobby.Data != null && lobby.Data.TryGetValue(LobbyServiceManager.KEY_DISPLAY_NAME, out var displayNameData))
+        bool success = false;
+        try
         {
-            lobbyDisplayName = displayNameData.Value;
+            success = await lobbyServiceManager.JoinLobbyAsync(lobby);
         }
-
-        await JoinLobbyWithRetriesAsync(() => lobbyServiceManager.JoinLobbyAsync(lobby), lobbyDisplayName);
-
-        // 処理が終わったら、UIの状態に応じてボタンのインタラクト状態を更新します。
-        // JoinLobbyWithRetriesAsync内でisProcessingがfalseに設定され、UpdateUIが呼ばれるので、
-        // ここでの明示的なSetAllJoinButtonsInteractable(true)は不要かもしれません。
-        // UpdateUIロジックに依存しますが、安全のために追加しておくことも考えられます。
-        if (!lobbyServiceManager.InLobby)
+        catch (Exception e)
         {
-            lobbyListView.SetAllJoinButtonsInteractable(true);
+            Debug.LogError($"ロビー参加処理中に予期せぬエラーが発生しました: {e.Message}");
+            success = false;
         }
+        finally
+        {
+            isProcessing = false;
+            if (!success)
+            {
+                // 失敗した場合、警告パネルを表示
+                if (connectionWarningPanel != null) connectionWarningPanel.SetActive(true);
+                lobbyListView.SetAllJoinButtonsInteractable(true);
+            }
+            UpdateUI();
+        }
+        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
     }
     private async void HandleRetrySignInClick()
     {
