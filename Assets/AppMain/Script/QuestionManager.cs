@@ -137,9 +137,9 @@ public class QuestionManager : MonoBehaviour
     void Update()
     {
         DefeatEnemyNumText.text = DefeatEnemyNum.ToString();
-        RemainingEnemyNumText.text = RemainingEnemyNum.ToString();
-        // RemainingEnemyNumText.text = "のこり " + RemainingEnemyNum.ToString();
-        CorrectAnswerNumText.text = $"正解数: {CorrectAnswerNum}";
+        // RemainingEnemyNumText.text = RemainingEnemyNum.ToString();
+        RemainingEnemyNumText.text = "Remain:" + RemainingEnemyNum.ToString();
+        CorrectAnswerNumText.text = CorrectAnswerNum.ToString();
 
 
         if (DefeatEnemyNum >= TotalEnemyNum)
