@@ -191,7 +191,45 @@ public class LobbyUIManager : MonoBehaviour
             SetStatus("Lobby Code を入力してください。");
             return;
         }
-        await ProcessLobbyTask(lobbyServiceManager.JoinLobbyByCodeAsync(lobbyCodeInput.text.Trim().ToUpper()));
+        string lobbyCode = lobbyCodeInput.text.Trim().ToUpper();
+        await JoinLobbyWithRetriesAsync(() => lobbyServiceManager.JoinLobbyByCodeAsync(lobbyCode), $"code '{lobbyCode}'");
+    }
+
+    private async Task<bool> JoinLobbyWithRetriesAsync(Func<Task<bool>> joinAction, string lobbyIdentifier)
+    {
+        isProcessing = true;
+        UpdateUI();
+
+        const int maxRetries = 3;
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            SetStatus($"Trying to join lobby '{lobbyIdentifier}'... ({attempt}/{maxRetries})");
+            try
+            {
+                bool success = await joinAction();
+                if (success)
+                {
+                    SetStatus($"Successfully joined lobby '{lobbyIdentifier}'.");
+                    isProcessing = false;
+                    UpdateUI();
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Attempt #{attempt} to join lobby failed: {e.Message}");
+            }
+
+            if (attempt < maxRetries)
+            {
+                await Task.Delay(2000);
+            }
+        }
+
+        SetStatus("Failed to join the lobby.\nPlease check your internet connection and try again.");
+        isProcessing = false;
+        UpdateUI();
+        return false;
     }
 
     private async Task ProcessLobbyTask(Task task)
@@ -464,24 +502,24 @@ public class LobbyUIManager : MonoBehaviour
     {
         if (isProcessing) return;
 
-        isProcessing = true;
         lobbyListView.SetAllJoinButtonsInteractable(false);
-        UpdateUI();
-        try
+
+        // ロビー名を取得しようと試みます。表示名キーが存在すればそれを使用し、なければ元の名前を使います。
+        string lobbyDisplayName = lobby.Name;
+        if (lobby.Data != null && lobby.Data.TryGetValue(LobbyServiceManager.KEY_DISPLAY_NAME, out var displayNameData))
         {
-            await lobbyServiceManager.JoinLobbyAsync(lobby);
+            lobbyDisplayName = displayNameData.Value;
         }
-        catch (Exception e)
+
+        await JoinLobbyWithRetriesAsync(() => lobbyServiceManager.JoinLobbyAsync(lobby), lobbyDisplayName);
+
+        // 処理が終わったら、UIの状態に応じてボタンのインタラクト状態を更新します。
+        // JoinLobbyWithRetriesAsync内でisProcessingがfalseに設定され、UpdateUIが呼ばれるので、
+        // ここでの明示的なSetAllJoinButtonsInteractable(true)は不要かもしれません。
+        // UpdateUIロジックに依存しますが、安全のために追加しておくことも考えられます。
+        if (!lobbyServiceManager.InLobby)
         {
-            Debug.LogError($"ロビー参加処理中にエラーが発生しました: {e.Message}");
-        }
-        finally
-        {
-            isProcessing = false;
-            // isProcessingがfalseになった後、UIが更新されるときにボタンが再度有効になるため、
-            // ここで明示的に有効化する必要は必ずしもないかもしれませんが、念のため。
             lobbyListView.SetAllJoinButtonsInteractable(true);
-            UpdateUI();
         }
     }
     private async void HandleRetrySignInClick()
