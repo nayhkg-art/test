@@ -55,6 +55,7 @@ public class GameOverManager : NetworkBehaviour
     [Header("Single Player UI")]
     [SerializeField] private GameObject singlePlayerResultWindow;
     [SerializeField] private TMP_Text singlePlayerScoreText;
+    [SerializeField] private TMP_Text singlePlayerTimeText;
 
     [Header("Stats Display Texts")]
     [SerializeField] private TMP_Text singlePlayerEnemiesDefeatedText;
@@ -171,6 +172,22 @@ public class GameOverManager : NetworkBehaviour
             if (singlePlayerEnemiesDefeatedText != null)
             {
                 singlePlayerEnemiesDefeatedText.text = $"{(int)QuestionManager.CorrectAnswerNum} / {(int)QuestionManager.TotalEnemyNum}";
+            }
+            if (singlePlayerTimeText != null)
+            {
+                TimerManager timerManager = FindFirstObjectByType<TimerManager>();
+                if (timerManager != null)
+                {
+                    float finalTime = timerManager.MainTimer;
+                    int minutes = (int)(finalTime / 60);
+                    int seconds = (int)(finalTime % 60);
+                    int centiseconds = (int)((finalTime * 100) % 100);
+                    singlePlayerTimeText.text = $"TIME: {minutes:00}:{seconds:00}.{centiseconds:00}";
+                }
+                else
+                {
+                    singlePlayerTimeText.text = "TIME: --:--.--";
+                }
             }
         }
         else

@@ -12,7 +12,7 @@ public class TimerManager : MonoBehaviour
     public float LimitTime = 300;
     private bool isTimerStart;
     public bool IsTimerStart { get => isTimerStart; }
-    private float mainTimer = 0f;
+    public float MainTimer { get; private set; } = 0f;
     private float gameOverTimer = 0f;
     public GameOverManager gameOverManager;
     private Coroutine timerCoroutine;
@@ -45,11 +45,11 @@ public class TimerManager : MonoBehaviour
         // ゲームモードに応じてタイマーの初期値を設定
         if (currentGameMode == GameSelectionManager.GameMode.SinglePlayer)
         {
-            mainTimer = 0f;
+            MainTimer = 0f;
         }
         else
         {
-            mainTimer = LimitTime;
+            MainTimer = LimitTime;
         }
     }
 
@@ -60,15 +60,15 @@ public class TimerManager : MonoBehaviour
             if (currentGameMode == GameSelectionManager.GameMode.SinglePlayer)
             {
                 // シングルプレイヤーモード：タイマーを増加させる
-                mainTimer += Time.deltaTime;
+                MainTimer += Time.deltaTime;
             }
             else
             {
                 // マルチプレイヤーモード：タイマーを減少させる
-                mainTimer -= Time.deltaTime;
-                mainTimer = Mathf.Max(0, mainTimer);
+                MainTimer -= Time.deltaTime;
+                MainTimer = Mathf.Max(0, MainTimer);
 
-                if (mainTimer <= 0)
+                if (MainTimer <= 0)
                 {
                     gameOverTimer += Time.deltaTime;
                     if (gameOverTimer >= 1)
@@ -78,9 +78,9 @@ public class TimerManager : MonoBehaviour
                 }
             }
 
-            int minutes = (int)(mainTimer / 60);
-            int seconds = (int)(mainTimer % 60);
-            int centiseconds = (int)((mainTimer * 100) % 100);
+            int minutes = (int)(MainTimer / 60);
+            int seconds = (int)(MainTimer % 60);
+            int centiseconds = (int)((MainTimer * 100) % 100);
 
             TimerText.text = string.Format("{0:00}:{1:00}.{2:00}", minutes, seconds, centiseconds);
         }
@@ -96,16 +96,16 @@ public class TimerManager : MonoBehaviour
         // ゲームモードに応じてタイマーのリセット値を設定
         if (currentGameMode == GameSelectionManager.GameMode.SinglePlayer)
         {
-            mainTimer = 0f;
+            MainTimer = 0f;
         }
         else
         {
-            mainTimer = LimitTime;
+            MainTimer = LimitTime;
         }
         gameOverTimer = 0f;
-        int minutes = (int)(mainTimer / 60);
-        int seconds = (int)(mainTimer % 60);
-        int centiseconds = (int)((mainTimer * 100) % 100);
+        int minutes = (int)(MainTimer / 60);
+        int seconds = (int)(MainTimer % 60);
+        int centiseconds = (int)((MainTimer * 100) % 100);
         TimerText.text = string.Format("{0:00}:{1:00}.{2:00}", minutes, seconds, centiseconds);
     }
 }
