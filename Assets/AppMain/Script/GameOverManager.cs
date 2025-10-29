@@ -225,40 +225,39 @@ public class GameOverManager : NetworkBehaviour
             accuracy = (float)QuestionManager.CorrectAnswerNum / QuestionManager.TotalEnemyNum;
         }
 
-        if (accuracy >= 1.0f)
+        RankManager.Rank rank = RankManager.GetRankFromAccuracy(accuracy);
+        RankManager.SaveBestRank(GameSelectionManager.SelectedGameType, rank);
+
+        switch (rank)
         {
-            rankUIToShow = rank_S_UI;
-            rankSound = rank_S_Sound;
-        }
-        else if (accuracy >= 0.9f)
-        {
-            rankUIToShow = rank_A_UI;
-            rankSound = rank_A_Sound;
-        }
-        else if (accuracy >= 0.7f)
-        {
-            rankUIToShow = rank_B_UI;
-            rankSound = rank_B_Sound;
-        }
-        else if (accuracy >= 0.5f)
-        {
-            rankUIToShow = rank_C_UI;
-            rankSound = rank_C_Sound;
-        }
-        else if (accuracy >= 0.3f)
-        {
-            rankUIToShow = rank_D_UI;
-            rankSound = rank_D_Sound;
-        }
-        else if (accuracy > 0f)
-        {
-            rankUIToShow = rank_E_UI;
-            rankSound = rank_E_Sound;
-        }
-        else
-        {
-            rankUIToShow = rank_F_UI;
-            rankSound = rank_F_Sound;
+            case RankManager.Rank.S:
+                rankUIToShow = rank_S_UI;
+                rankSound = rank_S_Sound;
+                break;
+            case RankManager.Rank.A:
+                rankUIToShow = rank_A_UI;
+                rankSound = rank_A_Sound;
+                break;
+            case RankManager.Rank.B:
+                rankUIToShow = rank_B_UI;
+                rankSound = rank_B_Sound;
+                break;
+            case RankManager.Rank.C:
+                rankUIToShow = rank_C_UI;
+                rankSound = rank_C_Sound;
+                break;
+            case RankManager.Rank.D:
+                rankUIToShow = rank_D_UI;
+                rankSound = rank_D_Sound;
+                break;
+            case RankManager.Rank.E:
+                rankUIToShow = rank_E_UI;
+                rankSound = rank_E_Sound;
+                break;
+            case RankManager.Rank.F:
+                rankUIToShow = rank_F_UI;
+                rankSound = rank_F_Sound;
+                break;
         }
 
         if (rankUIToShow != null)
