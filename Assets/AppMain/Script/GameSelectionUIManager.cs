@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-<<<<<<< HEAD
 using TMPro;
-=======
 using System.Collections.Generic;
 
 [System.Serializable]
@@ -17,7 +15,6 @@ public class RankUI
     public GameObject rank_E_UI;
     public GameObject rank_F_UI;
 }
->>>>>>> 6a90a9080ac08419ad04e46f4d14f452f2fd1a0b
 
 public class GameSelectionUIManager : MonoBehaviour
 {
