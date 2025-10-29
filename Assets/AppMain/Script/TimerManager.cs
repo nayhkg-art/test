@@ -2,11 +2,10 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System; // ★Actionを使うために追加
+using System;
 
 public class TimerManager : MonoBehaviour
 {
-    // ★追加: タイマー開始を通知するための静的イベント
     public static event Action OnTimerStarted;
 
     public TextMeshProUGUI TimerText;
@@ -18,15 +17,21 @@ public class TimerManager : MonoBehaviour
     public GameOverManager gameOverManager;
     private Coroutine timerCoroutine;
 
+    // GameSelectionManagerから現在のゲームモードを受け取る
+    private GameSelectionManager.GameMode currentGameMode;
+
     void Start()
     {
         isTimerStart = false;
+        // GameSelectionManagerのインスタンスから現在のゲームモードを取得
+        if (GameSelectionManager.Instance != null)
+        {
+            currentGameMode = GameSelectionManager.Instance.CurrentGameMode;
+        }
     }
 
     public void StartTimer()
     {
-        // イベントを発生させて、購読しているスクリプトに通知する
-        // ?.Invoke() とすることで、購読者がいなくてもエラーにならない
         OnTimerStarted?.Invoke();
         Debug.Log("Timer started and OnTimerStarted event invoked.");
         
@@ -37,32 +42,47 @@ public class TimerManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         isTimerStart = true;
-        mainTimer = LimitTime;
-
-        
+        // ゲームモードに応じてタイマーの初期値を設定
+        if (currentGameMode == GameSelectionManager.GameMode.SinglePlayer)
+        {
+            mainTimer = 0f;
+        }
+        else
+        {
+            mainTimer = LimitTime;
+        }
     }
 
     void Update()
     {
         if (isTimerStart)
         {
-            mainTimer -= Time.deltaTime;
-            mainTimer = Mathf.Max(0, mainTimer);
+            if (currentGameMode == GameSelectionManager.GameMode.SinglePlayer)
+            {
+                // シングルプレイヤーモード：タイマーを増加させる
+                mainTimer += Time.deltaTime;
+            }
+            else
+            {
+                // マルチプレイヤーモード：タイマーを減少させる
+                mainTimer -= Time.deltaTime;
+                mainTimer = Mathf.Max(0, mainTimer);
+
+                if (mainTimer <= 0)
+                {
+                    gameOverTimer += Time.deltaTime;
+                    if (gameOverTimer >= 1)
+                    {
+                        gameOverManager.GameOver(GameOverReason.Score);
+                    }
+                }
+            }
 
             int minutes = (int)(mainTimer / 60);
             int seconds = (int)(mainTimer % 60);
             int centiseconds = (int)((mainTimer * 100) % 100);
 
             TimerText.text = string.Format("{0:00}:{1:00}.{2:00}", minutes, seconds, centiseconds);
-
-            if (mainTimer <= 0)
-            {
-                gameOverTimer += Time.deltaTime;
-                if (gameOverTimer >= 1)
-                {
-                    gameOverManager.GameOver(GameOverReason.Score);
-                }
-            }
         }
     }
 
@@ -73,11 +93,19 @@ public class TimerManager : MonoBehaviour
             StopCoroutine(timerCoroutine);
         }
         isTimerStart = false;
-        mainTimer = LimitTime;
+        // ゲームモードに応じてタイマーのリセット値を設定
+        if (currentGameMode == GameSelectionManager.GameMode.SinglePlayer)
+        {
+            mainTimer = 0f;
+        }
+        else
+        {
+            mainTimer = LimitTime;
+        }
         gameOverTimer = 0f;
-        int minutes = (int)(LimitTime / 60);
-        int seconds = (int)(LimitTime % 60);
-        int centiseconds = (int)((LimitTime * 100) % 100);
+        int minutes = (int)(mainTimer / 60);
+        int seconds = (int)(mainTimer % 60);
+        int centiseconds = (int)((mainTimer * 100) % 100);
         TimerText.text = string.Format("{0:00}:{1:00}.{2:00}", minutes, seconds, centiseconds);
     }
 }
