@@ -14,7 +14,7 @@ public enum GameOverReason
 public class GameOverManager : NetworkBehaviour
 {
     public JoystickPlayerController joystickPlayerController;
-    public SwipeCameraController swipeCameraController; // ★ 修正点: LookController を SwipeCameraController に変更
+    public SwipeCameraController swipeCameraController;
     public CharacterController characterController;
     public Shooting shooting;
 
@@ -52,14 +52,18 @@ public class GameOverManager : NetworkBehaviour
     [SerializeField] private TMP_Text drawMyScoreText;
     [SerializeField] private TMP_Text drawFriendScoreText;
 
+    // --- ▼▼▼ ここから修正 ▼▼▼ ---
     [Header("Single Player UI")]
     [SerializeField] private GameObject singlePlayerResultWindow;
     [SerializeField] private TMP_Text singlePlayerScoreText;
+    [SerializeField] private TMP_Text singlePlayerFinalTimeText; // タイム表示用のUI
+
+    private TimerManager timerManager; // TimerManagerへの参照
+    // --- ▲▲▲ ここまで修正 ▲▲▲ ---
 
     [Header("Stats Display Texts")]
     [SerializeField] private TMP_Text singlePlayerEnemiesDefeatedText;
 
-    // --- ▼▼▼ ここから修正 ▼▼▼ ---
     [Header("Single Player Rank UI")]
     [SerializeField] private GameObject rank_S_UI;
     [SerializeField] private GameObject rank_A_UI;
@@ -77,7 +81,6 @@ public class GameOverManager : NetworkBehaviour
     [SerializeField] private AudioClip rank_D_Sound;
     [SerializeField] private AudioClip rank_E_Sound;
     [SerializeField] private AudioClip rank_F_Sound;
-    // --- ▲▲▲ ここまで修正 ▲▲▲ ---
 
 
     private void Awake()
@@ -92,6 +95,16 @@ public class GameOverManager : NetworkBehaviour
         {
             Debug.LogError("AudioManagerが見つかりません。");
         }
+
+        // --- ▼▼▼ ここから修正 ▼▼▼ ---
+        // TimerManagerのインスタンスを検索して保持
+        timerManager = FindFirstObjectByType<TimerManager>();
+        if (timerManager == null)
+        {
+            Debug.LogError("TimerManagerが見つかりません。");
+        }
+        // --- ▲▲▲ ここまで修正 ▲▲▲ ---
+
         if (heartbeat == null)
         {
             Debug.LogError("Heartbeatが設定されていません!");
@@ -108,17 +121,6 @@ public class GameOverManager : NetworkBehaviour
         if (isGameOver.Value) return;
 
         if (AudioManager.Instance != null) AudioManager.Instance.StopAllSounds();
-
-        // --- ▼▼▼ ここから変更 ▼▼▼ ---
-        // 敵を消す処理を OnGameOverChanged に移動させたため、ここからは削除します。
-        /*
-        if (SpawnEnemyManager.Instance != null)
-        {
-            SpawnEnemyManager.Instance.StopAllSpawning(); 
-            SpawnEnemyManager.Instance.DestroyAllActiveEnemies();
-        }
-        */
-        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
 
         if (GameSelectionManager.Instance != null && GameSelectionManager.Instance.CurrentGameMode == GameSelectionManager.GameMode.SinglePlayer)
         {
@@ -168,6 +170,29 @@ public class GameOverManager : NetworkBehaviour
             {
                 singlePlayerScoreText.text = $"{scoreAnimeManager.Score}";
             }
+
+            // --- ▼▼▼ ここから修正 ▼▼▼ ---
+            // 最終タイムを表示する処理
+            if (singlePlayerFinalTimeText != null && timerManager != null)
+            {
+                // TimerManagerから最終タイムを取得
+                float finalTime = timerManager.CurrentTime;
+                
+                // mm:ss.ff 形式にフォーマット
+                int minutes = (int)(finalTime / 60);
+                int seconds = (int)(finalTime % 60);
+                int centiseconds = (int)((finalTime * 100) % 100);
+                
+                // UIテキストに設定
+                singlePlayerFinalTimeText.text = string.Format("{0:00}:{1:00}:{2:00}", minutes, seconds, centiseconds);
+            }
+            else
+            {
+                if (singlePlayerFinalTimeText == null) Debug.LogError("singlePlayerFinalTimeTextが設定されていません！");
+                if (timerManager == null) Debug.LogError("timerManagerが見つかりませんでした！");
+            }
+            // --- ▲▲▲ ここまで修正 ▲▲▲ ---
+
             if (singlePlayerEnemiesDefeatedText != null)
             {
                 singlePlayerEnemiesDefeatedText.text = $"{(int)QuestionManager.CorrectAnswerNum} / {(int)QuestionManager.TotalEnemyNum}";
@@ -187,53 +212,50 @@ public class GameOverManager : NetworkBehaviour
         StartCoroutine(ShowRankUI(reason));
     }
 
-    // --- ▼▼▼ ここから修正 ▼▼▼ ---
     private IEnumerator ShowRankUI(GameOverReason reason)
     {
-        yield return new WaitForSeconds(5.0f); // 結果パネル表示から数秒待つ
+        yield return new WaitForSeconds(5.0f);
 
         GameObject rankUIToShow = null;
         AudioClip rankSound = null;
 
-        // 正答率を計算 (TotalEnemyNumが0の場合のゼロ除算を防止)
         float accuracy = 0f;
         if (QuestionManager.TotalEnemyNum > 0)
         {
             accuracy = (float)QuestionManager.CorrectAnswerNum / QuestionManager.TotalEnemyNum;
         }
 
-        // 新しいランク基準で判定
-        if (accuracy >= 1.0f) // S: 100%
+        if (accuracy >= 1.0f)
         {
             rankUIToShow = rank_S_UI;
             rankSound = rank_S_Sound;
         }
-        else if (accuracy >= 0.9f) // A: 90%以上
+        else if (accuracy >= 0.9f)
         {
             rankUIToShow = rank_A_UI;
             rankSound = rank_A_Sound;
         }
-        else if (accuracy >= 0.7f) // B: 70%以上
+        else if (accuracy >= 0.7f)
         {
             rankUIToShow = rank_B_UI;
             rankSound = rank_B_Sound;
         }
-        else if (accuracy >= 0.5f) // C: 50%以上
+        else if (accuracy >= 0.5f)
         {
             rankUIToShow = rank_C_UI;
             rankSound = rank_C_Sound;
         }
-        else if (accuracy >= 0.3f) // D: 30%以上
+        else if (accuracy >= 0.3f)
         {
             rankUIToShow = rank_D_UI;
             rankSound = rank_D_Sound;
         }
-        else if (accuracy > 0f) // E: 0%より上
+        else if (accuracy > 0f)
         {
             rankUIToShow = rank_E_UI;
             rankSound = rank_E_Sound;
         }
-        else // F: 0%
+        else
         {
             rankUIToShow = rank_F_UI;
             rankSound = rank_F_Sound;
@@ -241,7 +263,6 @@ public class GameOverManager : NetworkBehaviour
 
         if (rankUIToShow != null)
         {
-            // Animator関連のコードを削除し、座標を直接操作する処理に変更
             RectTransform rankRectTransform = rankUIToShow.GetComponent<RectTransform>();
             if (rankRectTransform == null)
             {
@@ -249,38 +270,31 @@ public class GameOverManager : NetworkBehaviour
                 yield break;
             }
 
-            // --- アニメーションの設定 ---
-            float animationDuration = 0.5f; // アニメーションの時間（秒）
-            float startPositionX = 800f;   // 開始位置のX座標
-            Vector2 targetPosition = rankRectTransform.anchoredPosition; // Inspectorで設定された本来の位置を目標地点とする
-            Vector2 startPosition = new Vector2(startPositionX, targetPosition.y); // 開始位置
+            float animationDuration = 0.5f;
+            float startPositionX = 800f;
+            Vector2 targetPosition = rankRectTransform.anchoredPosition;
+            Vector2 startPosition = new Vector2(startPositionX, targetPosition.y);
 
-            // --- アニメーションの実行 ---
-            rankRectTransform.anchoredPosition = startPosition; // 開始位置に移動
-            rankUIToShow.SetActive(true); // UIをアクティブにする
+            rankRectTransform.anchoredPosition = startPosition;
+            rankUIToShow.SetActive(true);
 
             float elapsedTime = 0f;
             while (elapsedTime < animationDuration)
             {
                 elapsedTime += Time.deltaTime;
-                // SmoothStepを使って、開始時と終了時に少しゆっくりになるようなイージングをかける
                 float t = Mathf.SmoothStep(0f, 1f, elapsedTime / animationDuration);
-                // Lerpで開始位置と目標位置の間を補間する
                 rankRectTransform.anchoredPosition = Vector2.Lerp(startPosition, targetPosition, t);
-                yield return null; // 1フレーム待つ
+                yield return null;
             }
 
-            // 念のため、アニメーション終了後に正確な位置に設定
             rankRectTransform.anchoredPosition = targetPosition;
 
-            // アニメーションが終わった後にサウンドを再生
             if (rankSound != null && AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlaySFX(rankSound);
             }
         }
     }
-    // --- ▲▲▲ ここまで修正 ▲▲▲ ---
 
     private IEnumerator SendGameOverRepeatedly()
     {
@@ -336,8 +350,6 @@ public class GameOverManager : NetworkBehaviour
         {
             Debug.Log($"[GameOverManager] OnGameOverChanged: isGameOverが {newValue} に変更されました。");
 
-            // --- ▼▼▼ ここから変更 ▼▼▼ ---
-            // isGameOverがtrueになった時、全クライアントで敵の生成を停止し、既存の敵を全て破壊する
             if (SpawnEnemyManager.Instance != null)
             {
                 Debug.Log("[GameOverManager] 敵の生成を停止し、全ての敵を破壊します。");
@@ -348,7 +360,6 @@ public class GameOverManager : NetworkBehaviour
             {
                  Debug.LogError("[GameOverManager] SpawnEnemyManager.Instanceが見つかりません！");
             }
-            // --- ▲▲▲ ここまで変更 ▲▲▲ ---
 
             if (heartbeat != null)
             {
@@ -362,7 +373,6 @@ public class GameOverManager : NetworkBehaviour
             stop();
         }
     }
-
 
     [ClientRpc]
     void RequestFinalScoreClientRpc()
@@ -485,7 +495,6 @@ public class GameOverManager : NetworkBehaviour
         Debug.Log($"[GameOverManager] 勝敗判定結果: Result={result}");
         ResultClientRpc(result, hostScore.GetValueOrDefault(), clientScore.GetValueOrDefault(0));
     }
-
 
     [ClientRpc]
     void ResultClientRpc(int result, int hostScore, int clientScore)
@@ -660,7 +669,7 @@ public class GameOverManager : NetworkBehaviour
         Debug.Log("[GameOverManager] stop() 呼び出し。プレイヤー操作とUIを停止します。");
         if (mainCanvas != null) mainCanvas.SetActive(false);
         if (joystickPlayerController != null) joystickPlayerController.enabled = false;
-        if (swipeCameraController != null) swipeCameraController.enabled = false; // ★ 修正点: lookController を swipeCameraController に変更
+        if (swipeCameraController != null) swipeCameraController.enabled = false;
         if (characterController != null) characterController.enabled = false;
         if (shooting != null) shooting.enabled = false;
         if (Gun != null) Gun.SetActive(false);

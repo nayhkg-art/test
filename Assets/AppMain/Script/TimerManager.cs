@@ -1,8 +1,7 @@
-using System.Collections;
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System;
+using System.Collections;
+using TMPro;
+using UnityEngine;
 
 public class TimerManager : MonoBehaviour
 {
@@ -13,6 +12,11 @@ public class TimerManager : MonoBehaviour
     private bool isTimerStart;
     public bool IsTimerStart { get => isTimerStart; }
     private float mainTimer = 0f;
+
+    // --- ▼▼▼ ここから修正 ▼▼▼ ---
+    public float CurrentTime { get => mainTimer; } // 外部から現在の時間を取得するためのプロパティ
+    // --- ▲▲▲ ここまで修正 ▲▲▲ ---
+
     private float gameOverTimer = 0f;
     public GameOverManager gameOverManager;
     private Coroutine timerCoroutine;
