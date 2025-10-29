@@ -80,18 +80,10 @@ public class SpawnEnemyManager : MonoBehaviour
         // 通常の敵（漢字モード）を全削除
         DestroyAllKanjiActiveEnemiesInScene();
 
-        // --- ▼▼▼ ここからが修正部分 ▼▼▼ ---
-        // 相手から送り込まれた攻撃用の敵("AttackEnemy"タグを持つ敵)を全削除
-        GameObject[] attackEnemies = GameObject.FindGameObjectsWithTag("AttackEnemy");
-        foreach (GameObject attackEnemy in attackEnemies)
+        if (SpawnEnemyAttackManager.Instance != null)
         {
-            if (attackEnemy != null)
-            {
-                attackEnemy.SetActive(false);
-                Destroy(attackEnemy);
-            }
+            SpawnEnemyAttackManager.Instance.DestroyAllAttackEnemies();
         }
-        // --- ▲▲▲ ここまでが修正部分 ▲▲▲ ---
 
         _currentActiveEnemyCount = 0;
         _currentSpawnedPairCount = 0;
