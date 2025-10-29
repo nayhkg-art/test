@@ -1,9 +1,28 @@
 using UnityEngine;
 using UnityEngine.UI;
+<<<<<<< HEAD
 using TMPro;
+=======
+using System.Collections.Generic;
+
+[System.Serializable]
+public class RankUI
+{
+    public GameType gameType;
+    public GameObject rank_S_UI;
+    public GameObject rank_A_UI;
+    public GameObject rank_B_UI;
+    public GameObject rank_C_UI;
+    public GameObject rank_D_UI;
+    public GameObject rank_E_UI;
+    public GameObject rank_F_UI;
+}
+>>>>>>> 6a90a9080ac08419ad04e46f4d14f452f2fd1a0b
 
 public class GameSelectionUIManager : MonoBehaviour
 {
+    [Header("Rank UI")]
+    [SerializeField] private List<RankUI> rankUIs;
     // 各ゲームタイプ選択ボタンへの参照をInspectorで設定
     [Header("Game Mode Buttons")]
     [SerializeField] private Button jidoushiTadoushiButton;
@@ -60,6 +79,9 @@ public class GameSelectionUIManager : MonoBehaviour
 
         // 現在のゲームモードを取得してUIに表示
         UpdateGameModeDisplay();
+
+        // ランク表示を更新
+        UpdateRankDisplay();
 
         // ▼▼▼ 以下を追加 ▼▼▼
         // IAPManagerのインスタンスが存在するか確認
@@ -233,6 +255,58 @@ public class GameSelectionUIManager : MonoBehaviour
         }
     }
     // ▲▲▲ ここまで全て追加 ▲▲▲
+    private void UpdateRankDisplay()
+    {
+        foreach (var rankUI in rankUIs)
+        {
+            RankManager.Rank bestRank = RankManager.LoadBestRank(rankUI.gameType);
+
+            SetRankUIActive(rankUI, RankManager.Rank.S, bestRank == RankManager.Rank.S);
+            SetRankUIActive(rankUI, RankManager.Rank.A, bestRank == RankManager.Rank.A);
+            SetRankUIActive(rankUI, RankManager.Rank.B, bestRank == RankManager.Rank.B);
+            SetRankUIActive(rankUI, RankManager.Rank.C, bestRank == RankManager.Rank.C);
+            SetRankUIActive(rankUI, RankManager.Rank.D, bestRank == RankManager.Rank.D);
+            SetRankUIActive(rankUI, RankManager.Rank.E, bestRank == RankManager.Rank.E);
+            SetRankUIActive(rankUI, RankManager.Rank.F, bestRank == RankManager.Rank.F);
+
+            if (bestRank == RankManager.Rank.None)
+            {
+                SetAllRankUIInactive(rankUI);
+            }
+        }
+    }
+
+    private void SetAllRankUIInactive(RankUI rankUI)
+    {
+        rankUI.rank_S_UI.SetActive(false);
+        rankUI.rank_A_UI.SetActive(false);
+        rankUI.rank_B_UI.SetActive(false);
+        rankUI.rank_C_UI.SetActive(false);
+        rankUI.rank_D_UI.SetActive(false);
+        rankUI.rank_E_UI.SetActive(false);
+        rankUI.rank_F_UI.SetActive(false);
+    }
+
+    private void SetRankUIActive(RankUI rankUI, RankManager.Rank rank, bool isActive)
+    {
+        GameObject uiObject = null;
+        switch (rank)
+        {
+            case RankManager.Rank.S: uiObject = rankUI.rank_S_UI; break;
+            case RankManager.Rank.A: uiObject = rankUI.rank_A_UI; break;
+            case RankManager.Rank.B: uiObject = rankUI.rank_B_UI; break;
+            case RankManager.Rank.C: uiObject = rankUI.rank_C_UI; break;
+            case RankManager.Rank.D: uiObject = rankUI.rank_D_UI; break;
+            case RankManager.Rank.E: uiObject = rankUI.rank_E_UI; break;
+            case RankManager.Rank.F: uiObject = rankUI.rank_F_UI; break;
+        }
+
+        if (uiObject != null)
+        {
+            uiObject.SetActive(isActive);
+        }
+    }
+
 
     // リスナーを追加するヘルパーメソッド
     private void AddListener(Button button, UnityEngine.Events.UnityAction call)
