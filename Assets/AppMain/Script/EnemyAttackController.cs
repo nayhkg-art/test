@@ -11,86 +11,119 @@ public class EnemyAttackController : MonoBehaviour
     [Header("移動速度")]
     [SerializeField] private float Speed = 0.5f;
 
-    [Header("攻撃設定")]
+    // ▼▼▼ ここから変更 ▼▼▼
+    [Header("攻撃・追跡設定")]
+    [Tooltip("この距離までプレイヤーに近づくと移動を停止します")]
+    [SerializeField] private float stoppingDistance = 2.5f; // 移動を停止する距離
+    [Tooltip("この距離までプレイヤーに近づくと攻撃を開始します")]
     [SerializeField] private float attackRange = 2f; // 攻撃が可能な距離
+    // ▲▲▲ ここまで変更 ▲▲▲
+
     [SerializeField] private float attackInterval = 2f; // 次の攻撃までの時間
     private float attackCooldownTimer = 0f; // 攻撃のクールダウンを管理するタイマー
 
+    [Header("落下設定")]
+    [Tooltip("敵がこのY座標の高さまで落下します")]
+    [SerializeField] private float targetY = 1.0f; // 停止する目標のY座標
+    [Tooltip("敵が落下する速度です")]
+    [SerializeField] private float fallSpeed = 5.0f; // 落下速度
+
+    private bool isFalling = true; // 落下中かどうかの状態を管理するフラグ
+
     void Start()
     {
-        // Animatorが設定されていない場合にエラーメッセージを表示
         if (EnemyAnimator == null)
         {
             Debug.LogError("InspectorでEnemy Animatorが設定されていません！", this.gameObject);
         }
+        isFalling = true;
     }
 
     void Update()
     {
-        // Animatorがなければ処理を中断
         if (EnemyAnimator == null) return;
+        
+        if (isFalling)
+        {
+            FallDown();
+        }
+        else
+        {
+            ChaseAndAttackPlayer();
+        }
+    }
+    
+    private void FallDown()
+    {
+        EnemyAnimator.SetBool("IsRunning", false);
+        transform.position -= new Vector3(0, fallSpeed * Time.deltaTime, 0);
 
-        // 攻撃クールダウンタイマーを毎フレーム減らす
+        if (transform.position.y <= targetY)
+        {
+            isFalling = false;
+            Vector3 position = transform.position;
+            position.y = targetY;
+            transform.position = position;
+        }
+    }
+
+    // ▼▼▼ このメソッドの内部処理を大幅に変更 ▼▼▼
+    /// <summary>
+    /// プレイヤーを追跡して攻撃する処理
+    /// </summary>
+    private void ChaseAndAttackPlayer()
+    {
         if (attackCooldownTimer > 0f)
         {
             attackCooldownTimer -= Time.deltaTime;
         }
 
-        // "Player"タグを持つゲームオブジェクトを探す
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
         {
-            // プレイヤーとの距離を計算
             float distance = Vector3.Distance(transform.position, player.transform.position);
 
-            // 常にプレイヤーの方向を滑らかに向く
             Vector3 direction = player.transform.position - transform.position;
-            direction.y = 0; // 上下を向かないようにY軸を0にする
+            direction.y = 0;
             if (direction != Vector3.zero)
             {
                 Quaternion rotation = Quaternion.LookRotation(direction);
                 transform.rotation = Quaternion.Slerp(transform.rotation, rotation, Time.deltaTime * 5f);
             }
 
-            // プレイヤーが攻撃範囲内にいるかチェック
-            if (distance <= attackRange)
+            // ■■■ 移動ロジック ■■■
+            // プレイヤーとの距離が「停止距離」より大きい場合のみ移動する
+            if (distance > stoppingDistance)
             {
-                // 走りアニメーションを停止
-                EnemyAnimator.SetBool("IsRunning", false);
-
-                // 攻撃クールダウンが終わっていれば攻撃
-                if (attackCooldownTimer <= 0f)
-                {
-                    Attack(player);
-                }
+                EnemyAnimator.SetBool("IsRunning", true);
+                Vector3 moveDirection = direction.normalized * Speed * Time.deltaTime;
+                transform.position += moveDirection;
             }
             else
             {
-                // 攻撃範囲外なら、プレイヤーに向かって移動する
-                EnemyAnimator.SetBool("IsRunning", true); // 走りアニメーションを再生
-                Vector3 moveDirection = direction.normalized * Speed * Time.deltaTime;
-                transform.position += moveDirection;
+                // 停止距離以内に入ったら、移動を止める
+                EnemyAnimator.SetBool("IsRunning", false);
+            }
+
+            // ■■■ 攻撃ロジック ■■■
+            // プレイヤーとの距離が「攻撃範囲」以内で、クールダウンが終わっていれば攻撃
+            if (distance <= attackRange && attackCooldownTimer <= 0f)
+            {
+                Attack(player);
             }
         }
         else
         {
-            // プレイヤーが見つからない場合は、待機状態にする
             EnemyAnimator.SetBool("IsRunning", false);
         }
     }
+    // ▲▲▲ ここまで変更 ▲▲▲
 
-    /// <summary>
-    /// プレイヤーを攻撃する処理
-    /// </summary>
-    /// <param name="player">攻撃対象のプレイヤーオブジェクト</param>
     private void Attack(GameObject player)
     {
-        // 攻撃アニメーションをトリガー
         EnemyAnimator.SetTrigger("Attack");
-        // クールダウンタイマーをリセット
         attackCooldownTimer = attackInterval;
 
-        // プレイヤーオブジェクトにアタッチされているStatusManagerPlayerを取得してダメージを与える
         StatusManagerPlayer playerStatus = player.GetComponent<StatusManagerPlayer>();
         if (playerStatus != null)
         {
