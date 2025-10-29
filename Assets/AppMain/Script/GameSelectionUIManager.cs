@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameSelectionUIManager : MonoBehaviour
 {
@@ -26,7 +27,7 @@ public class GameSelectionUIManager : MonoBehaviour
 
     [Header("UI Display")]
     [Tooltip("現在のゲームモードを表示するテキスト")]
-    [SerializeField] private Text gameModeText;
+    [SerializeField] private TMP_Text gameModeText;
 
     // ▼▼▼ 以下を追加 ▼▼▼
     [Header("Lock Icons")]
@@ -213,21 +214,21 @@ public class GameSelectionUIManager : MonoBehaviour
             switch (GameSelectionManager.Instance.CurrentGameMode)
             {
                 case GameSelectionManager.GameMode.SinglePlayer:
-                    gameModeText.text = "シングルプレイ";
+                    gameModeText.text = "Single Play";
                     break;
                 case GameSelectionManager.GameMode.Multiplayer:
-                    gameModeText.text = "オンライン";
+                    gameModeText.text = "Online Play";
                     break;
                 case GameSelectionManager.GameMode.None:
                 default:
-                    gameModeText.text = "モード未選択";
+                    gameModeText.text = "No Mode Selected";
                     Debug.LogWarning("[GameSelectionUIManager] GameModeがNoneまたは未定義です。");
                     break;
             }
         }
         else
         {
-            gameModeText.text = "エラー";
+            gameModeText.text = "error";
             Debug.LogError("[GameSelectionUIManager] GameSelectionManagerのインスタンスが見つかりません。");
         }
     }
