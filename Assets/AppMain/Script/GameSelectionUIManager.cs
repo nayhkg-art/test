@@ -24,6 +24,10 @@ public class GameSelectionUIManager : MonoBehaviour
     [Header("Navigation Buttons")]
     [SerializeField] private Button backToTitleButton;
 
+    [Header("UI Display")]
+    [Tooltip("現在のゲームモードを表示するテキスト")]
+    [SerializeField] private Text gameModeText;
+
     // ▼▼▼ 以下を追加 ▼▼▼
     [Header("Lock Icons")]
     [Tooltip("購入が必要なゲームモードのボタンに表示するロックアイコン")]
@@ -52,6 +56,9 @@ public class GameSelectionUIManager : MonoBehaviour
 
         // 各ボタンのOnClickイベントにリスナーを追加
         AddListeners();
+
+        // 現在のゲームモードを取得してUIに表示
+        UpdateGameModeDisplay();
 
         // ▼▼▼ 以下を追加 ▼▼▼
         // IAPManagerのインスタンスが存在するか確認
@@ -188,6 +195,41 @@ public class GameSelectionUIManager : MonoBehaviour
         // 購入が成功したらUIを更新する
         Debug.Log($"購入成功({productId})を検知。UIを更新します。");
         UpdateLockIcons();
+    }
+
+    /// <summary>
+    /// 現在のゲームモードをUIテキストに表示します。
+    /// </summary>
+    private void UpdateGameModeDisplay()
+    {
+        if (gameModeText == null)
+        {
+            Debug.LogWarning("[GameSelectionUIManager] GameModeTextが設定されていません。");
+            return;
+        }
+
+        if (GameSelectionManager.Instance != null)
+        {
+            switch (GameSelectionManager.Instance.CurrentGameMode)
+            {
+                case GameSelectionManager.GameMode.SinglePlayer:
+                    gameModeText.text = "シングルプレイ";
+                    break;
+                case GameSelectionManager.GameMode.Multiplayer:
+                    gameModeText.text = "オンライン";
+                    break;
+                case GameSelectionManager.GameMode.None:
+                default:
+                    gameModeText.text = "モード未選択";
+                    Debug.LogWarning("[GameSelectionUIManager] GameModeがNoneまたは未定義です。");
+                    break;
+            }
+        }
+        else
+        {
+            gameModeText.text = "エラー";
+            Debug.LogError("[GameSelectionUIManager] GameSelectionManagerのインスタンスが見つかりません。");
+        }
     }
     // ▲▲▲ ここまで全て追加 ▲▲▲
 
