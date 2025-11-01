@@ -18,7 +18,7 @@ public class IAPManager : MonoBehaviour, IDetailedStoreListener
     {
         { GameType.Keigo,       "com.glabo.jidoushi.keigo" },
         { GameType.Hiragana,    "com.glabo.jidoushi.hiragana" },
-        { GameType.Katakana,    "com.glabo.jidoushi.katakana" },
+        // { GameType.Katakana,    "com.glabo.jidoushi.katakana" },
         { GameType.Yohoon,      "com.glabo.jidoushi.yohoon" },
         { GameType.KanjiN5,     "com.glabo.jidoushi.kanjin5" },
         { GameType.KanjiN4,     "com.glabo.jidoushi.kanjin4" },
