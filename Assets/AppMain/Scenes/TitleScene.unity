@@ -3227,6 +3227,10 @@ PrefabInstance:
       value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2640787059828267233, guid: 6b0b63df63b494687a5779b3853b0763, type: 3}
+      propertyPath: gemCollectSound
+      value: 
+      objectReference: {fileID: 8300000, guid: f62cc7464703d4395adfe15e1abf5355, type: 3}
+    - target: {fileID: 2640787059828267233, guid: 6b0b63df63b494687a5779b3853b0763, type: 3}
       propertyPath: openingBgm.clip
       value: 
       objectReference: {fileID: 8300000, guid: 6b92679a55ba14e08800507fd7e9729c, type: 3}

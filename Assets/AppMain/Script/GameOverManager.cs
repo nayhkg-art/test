@@ -225,7 +225,7 @@ public class GameOverManager : NetworkBehaviour
             accuracy = (float)QuestionManager.CorrectAnswerNum / QuestionManager.TotalEnemyNum;
         }
 
-        RankManager.Rank rank = RankManager.GetRankFromAccuracy(accuracy);
+         RankManager.Rank rank = RankManager.GetRankFromAccuracy(accuracy);
         RankManager.SaveBestRank(GameSelectionManager.SelectedGameType, rank);
 
         switch (rank)
