@@ -50,7 +50,7 @@ public class GameSelectionUIManager : MonoBehaviour
     [Tooltip("購入が必要なゲームモードのボタンに表示するロックアイコン")]
     [SerializeField] private GameObject keigoLock;
     [SerializeField] private GameObject hiraganaLock;
-    [SerializeField] private GameObject katakanaLock;
+    // [SerializeField] private GameObject katakanaLock;
     [SerializeField] private GameObject yohoonLock;
     [SerializeField] private GameObject kanjiN5Lock;
     [SerializeField] private GameObject kanjiN4Lock;
@@ -177,7 +177,7 @@ public class GameSelectionUIManager : MonoBehaviour
         Debug.Log("ロックアイコンの表示状態を更新します。");
         SetLockIconState(keigoLock,       IAPManager.ProductIds[GameType.Keigo]);
         SetLockIconState(hiraganaLock,    IAPManager.ProductIds[GameType.Hiragana]);
-        SetLockIconState(katakanaLock,    IAPManager.ProductIds[GameType.Katakana]);
+        // SetLockIconState(katakanaLock,    IAPManager.ProductIds[GameType.Katakana]);
         SetLockIconState(yohoonLock,      IAPManager.ProductIds[GameType.Yohoon]);
         SetLockIconState(kanjiN5Lock,     IAPManager.ProductIds[GameType.KanjiN5]);
         SetLockIconState(kanjiN4Lock,     IAPManager.ProductIds[GameType.KanjiN4]);

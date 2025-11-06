@@ -26,6 +26,7 @@ public class StatusManagerPlayer : MonoBehaviour
     public int JewelCount { get; private set; }
     [SerializeField] private TMP_Text jewelCountText;
     [SerializeField] private int maxJewels = 50;
+    public int MaxJewels => maxJewels; // ★ CoinRotatorから参照するためにこの行を追加
 
     private Heartbeat heartbeat;
 

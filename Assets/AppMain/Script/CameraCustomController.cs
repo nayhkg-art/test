@@ -23,11 +23,16 @@ public class CameraCustomController : MonoBehaviour
     public float explosionShakeDuration = 0.2f;
     public float explosionShakeMagnitude = 0.04f;
     
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
     [Header("雷の揺れ設定")]
     public float thunderShakeDuration = 0.4f; // 揺れの持続時間
     public float thunderShakeMagnitude = 0.3f; // 揺れの強さ
     public float thunderShakeSpeed = 25f;      // 揺れの速さ
+
+    // --- ▼▼▼ ここから追加 ▼▼▼ ---
+    [Header("Ultimate Attackの揺れ設定")]
+    public float ultimateShakeDuration = 1.0f; // 揺れの持続時間
+    public float ultimateShakeMagnitude = 0.2f; // 揺れの強さ
+    public float ultimateShakeSpeed = 20f;      // 揺れの速さ
     // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
     [Header("銃のボビング設定")]
@@ -43,9 +48,12 @@ public class CameraCustomController : MonoBehaviour
     private Vector3 initialGunPosition;
     private Vector3 currentMoveShake;
     
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
     private Vector3 _thunderShakeOffset; // 雷の揺れによるオフセット
     private Coroutine _thunderShakeCoroutine; // 実行中の揺れコルーチン
+    
+    // --- ▼▼▼ ここから追加 ▼▼▼ ---
+    private Vector3 _ultimateShakeOffset; // Ultimateの揺れによるオフセット
+    private Coroutine _ultimateShakeCoroutine; // 実行中の揺れコルーチン
     // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
 
@@ -56,8 +64,10 @@ public class CameraCustomController : MonoBehaviour
         if (gunTransform != null) { initialGunPosition = gunTransform.localPosition; }
         currentMoveShake = Vector3.zero;
         
-        // --- ▼▼▼ ここから追加 ▼▼▼ ---
         _thunderShakeOffset = Vector3.zero;
+        
+        // --- ▼▼▼ ここから追加 ▼▼▼ ---
+        _ultimateShakeOffset = Vector3.zero;
         // --- ▲▲▲ ここまで追加 ▲▲▲ ---
     }
 
@@ -92,7 +102,7 @@ public class CameraCustomController : MonoBehaviour
 
         // --- 最終的なカメラ位置を合成 ---
         // --- ▼▼▼ ここから変更 ▼▼▼ ---
-        transform.localPosition = initialPosition + breathShake + currentMoveShake + damageShake + _thunderShakeOffset;
+        transform.localPosition = initialPosition + breathShake + currentMoveShake + damageShake + _thunderShakeOffset + _ultimateShakeOffset;
         // --- ▲▲▲ ここまで変更 ▲▲▲ ---
 
         // --- 銃の揺れ処理 (変更なし) ---
@@ -118,7 +128,6 @@ public class CameraCustomController : MonoBehaviour
         currentShakeMagnitude = magnitude;
     }
     
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
     /// <summary>
     /// 雷用のカメラシェイクを開始します。
     /// </summary>
@@ -153,6 +162,43 @@ public class CameraCustomController : MonoBehaviour
 
         // 揺れが終わったらオフセットをリセット
         _thunderShakeOffset = Vector3.zero;
+    }
+
+    // --- ▼▼▼ ここから追加 ▼▼▼ ---
+    /// <summary>
+    /// Ultimate Attack用のカメラシェイクを開始します。
+    /// </summary>
+    public void TriggerUltimateShake()
+    {
+        // 既に揺れている場合は、一度止めてから新しい揺れを開始
+        if (_ultimateShakeCoroutine != null)
+        {
+            StopCoroutine(_ultimateShakeCoroutine);
+        }
+        _ultimateShakeCoroutine = StartCoroutine(UltimateShakeCoroutine(ultimateShakeDuration, ultimateShakeMagnitude, ultimateShakeSpeed));
+    }
+
+    private IEnumerator UltimateShakeCoroutine(float duration, float magnitude, float speed)
+    {
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+
+            // 揺れの強さを時間経過で減衰させる (終わりの方で揺れが収まる)
+            float currentMagnitude = Mathf.Lerp(magnitude, 0f, elapsedTime / duration);
+
+            // Sin関数を使って滑らかな「上下」の揺れを生成
+            float offsetY = Mathf.Sin(elapsedTime * speed) * currentMagnitude;
+
+            _ultimateShakeOffset = new Vector3(0, offsetY, 0);
+
+            yield return null; // 次のフレームまで待機
+        }
+
+        // 揺れが終わったらオフセットをリセット
+        _ultimateShakeOffset = Vector3.zero;
     }
     // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 }
