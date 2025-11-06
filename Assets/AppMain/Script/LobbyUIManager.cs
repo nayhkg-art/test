@@ -111,6 +111,10 @@ public class LobbyUIManager : MonoBehaviour
         // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
         UpdateUI();
+        if (audioManager != null)
+        {
+            audioManager.PlayBGM(audioManager.openingBgm);
+        }
     }
 
     private void OnDisable()
@@ -148,6 +152,10 @@ public class LobbyUIManager : MonoBehaviour
         // --- ▼▼▼ ここから追加 ▼▼▼ ---
         if (closeWarningButton != null) closeWarningButton.onClick.RemoveListener(HideConnectionWarning);
         // --- ▲▲▲ ここまで追加 ▲▲▲ ---
+        if (audioManager != null)
+        {
+            audioManager.StopBGM();
+        }
     }
     
     // --- ▼▼▼ ここから追加 ▼▼▼ ---
