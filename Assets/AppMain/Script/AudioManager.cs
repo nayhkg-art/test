@@ -193,6 +193,15 @@ public class AudioManager : MonoBehaviour
         Debug.Log($"BGM '{sound.clip.name}' を再生しました。(個別音量: {sound.volume})");
     }
 
+    public void StopBGM()
+    {
+        if (bgmAudioSource != null && bgmAudioSource.isPlaying)
+        {
+            bgmAudioSource.Stop();
+            Debug.Log("BGMを停止しました。");
+        }
+    }
+
     public void PlaySFX_2D(AudioClip clip)
     {
         PlaySFX_2D(clip, 1.0f);
