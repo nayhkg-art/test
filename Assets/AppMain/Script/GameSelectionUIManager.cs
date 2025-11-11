@@ -20,7 +20,7 @@ public class GameSelectionUIManager : MonoBehaviour
 {
     [Header("Rank UI")]
     [SerializeField] private List<RankUI> rankUIs;
-    // 各ゲームタイプ選択ボタンへの参照をInspectorで設定
+
     [Header("Game Mode Buttons")]
     [SerializeField] private Button jidoushiTadoushiButton;
     [SerializeField] private Button keigoButton;
@@ -41,11 +41,15 @@ public class GameSelectionUIManager : MonoBehaviour
     [Header("Navigation Buttons")]
     [SerializeField] private Button backToTitleButton;
 
+    [Header("Help UI")]
+    [SerializeField] private Button helpButton;
+    [SerializeField] private GameObject helpPanel;
+    [SerializeField] private Button closeHelpButton;
+
     [Header("UI Display")]
     [Tooltip("現在のゲームモードを表示するテキスト")]
     [SerializeField] private TMP_Text gameModeText;
 
-    // ▼▼▼ 以下を追加 ▼▼▼
     [Header("Lock Icons")]
     [Tooltip("購入が必要なゲームモードのボタンに表示するロックアイコン")]
     [SerializeField] private GameObject keigoLock;
@@ -61,7 +65,6 @@ public class GameSelectionUIManager : MonoBehaviour
     [SerializeField] private GameObject hinshiLock;
     [SerializeField] private GameObject groupLock;
     [SerializeField] private GameObject firstKanjiLock;
-    // ▲▲▲ ここまで追加 ▲▲▲
 
     void Start()
     {
@@ -71,59 +74,44 @@ public class GameSelectionUIManager : MonoBehaviour
             return;
         }
 
-        // 各ボタンのOnClickイベントにリスナーを追加
         AddListeners();
-
-        // 現在のゲームモードを取得してUIに表示
         UpdateGameModeDisplay();
-
-        // ランク表示を更新
         UpdateRankDisplay();
 
-        // ▼▼▼ 以下を追加 ▼▼▼
-        // IAPManagerのインスタンスが存在するか確認
+        if (helpPanel != null)
+        {
+            helpPanel.SetActive(false);
+        }
+
         if (IAPManager.Instance != null)
         {
-            // IAPが既に初期化済みかチェック
             if (IAPManager.Instance.IsInitialized)
             {
-                // 初期化済みなら、すぐにUIを更新
                 UpdateLockIcons();
             }
             else
             {
-                // まだなら、初期化完了イベントを購読
                 IAPManager.Instance.OnIapInitialized += UpdateLockIcons;
             }
-            // 購入成功イベントを購読（購入直後にUIを更新するため）
             IAPManager.Instance.OnPurchaseSuccess += OnPurchaseCompleted;
         }
         else
         {
             Debug.LogError("[GameSelectionUIManager] IAPManager.Instance が見つかりません。");
         }
-        // ▲▲▲ ここまで追加 ▲▲▲
     }
 
     void OnDestroy()
     {
-        // ▼▼▼ イベント購読解除処理を修正 ▼▼▼
-        RemoveListeners(); // リスナー削除処理をメソッドにまとめる
+        RemoveListeners();
 
         if (IAPManager.Instance != null)
         {
-            // 購読したイベントを解除
             IAPManager.Instance.OnIapInitialized -= UpdateLockIcons;
             IAPManager.Instance.OnPurchaseSuccess -= OnPurchaseCompleted;
         }
-        // ▲▲▲ ここまで修正 ▲▲▲
     }
-    
-    // ▼▼▼ 以下を全て追加 ▼▼▼
 
-    /// <summary>
-    /// 各ボタンにリスナーを登録します。
-    /// </summary>
     private void AddListeners()
     {
         AddListener(jidoushiTadoushiButton, GameSelectionManager.Instance.OnJidoushiTadoushiSelected);
@@ -142,11 +130,17 @@ public class GameSelectionUIManager : MonoBehaviour
         AddListener(groupButton, GameSelectionManager.Instance.OnGroupSelected);
         AddListener(firstKanjiButton, GameSelectionManager.Instance.OnFirstKanjiSelected);
         AddListener(backToTitleButton, GameSelectionManager.Instance.OnBackToTitle);
+
+        if (helpButton != null)
+        {
+            helpButton.onClick.AddListener(OnHelpButtonClicked);
+        }
+        if (closeHelpButton != null)
+        {
+            closeHelpButton.onClick.AddListener(OnCloseHelpButtonClicked);
+        }
     }
 
-    /// <summary>
-    /// 各ボタンからリスナーを解除します。
-    /// </summary>
     private void RemoveListeners()
     {
         if (GameSelectionManager.Instance == null) return;
@@ -167,68 +161,75 @@ public class GameSelectionUIManager : MonoBehaviour
         RemoveListener(groupButton, GameSelectionManager.Instance.OnGroupSelected);
         RemoveListener(firstKanjiButton, GameSelectionManager.Instance.OnFirstKanjiSelected);
         RemoveListener(backToTitleButton, GameSelectionManager.Instance.OnBackToTitle);
-    }
-    
-    /// <summary>
-    /// 購入状態に基づいてロックアイコンの表示/非表示を更新します。
-    /// </summary>
-    private void UpdateLockIcons()
-    {
-        Debug.Log("ロックアイコンの表示状態を更新します。");
-        SetLockIconState(keigoLock,       IAPManager.ProductIds[GameType.Keigo]);
-        SetLockIconState(hiraganaLock,    IAPManager.ProductIds[GameType.Hiragana]);
-        // SetLockIconState(katakanaLock,    IAPManager.ProductIds[GameType.Katakana]);
-        SetLockIconState(yohoonLock,      IAPManager.ProductIds[GameType.Yohoon]);
-        SetLockIconState(kanjiN5Lock,     IAPManager.ProductIds[GameType.KanjiN5]);
-        SetLockIconState(kanjiN4Lock,     IAPManager.ProductIds[GameType.KanjiN4]);
-        SetLockIconState(kanjiN3Lock,     IAPManager.ProductIds[GameType.KanjiN3]);
-        SetLockIconState(kanjiN2Lock,     IAPManager.ProductIds[GameType.KanjiN2]);
-        SetLockIconState(kanjiN1Lock,     IAPManager.ProductIds[GameType.KanjiN1]);
-        SetLockIconState(katakanaEigoLock,IAPManager.ProductIds[GameType.KatakanaEigo]);
-        SetLockIconState(hinshiLock,      IAPManager.ProductIds[GameType.Hinshi]);
-        SetLockIconState(groupLock,       IAPManager.ProductIds[GameType.Group]);
-        SetLockIconState(firstKanjiLock,  IAPManager.ProductIds[GameType.FirstKanji]);
+
+        if (helpButton != null)
+        {
+            helpButton.onClick.RemoveListener(OnHelpButtonClicked);
+        }
+        if (closeHelpButton != null)
+        {
+            closeHelpButton.onClick.RemoveListener(OnCloseHelpButtonClicked);
+        }
     }
 
-    /// <summary>
-    /// 指定されたプロダクトIDの購入状態に応じて、対応するロックアイコンのGameObjectをアクティブ/非アクティブにします。
-    /// </summary>
-    /// <param name="lockIcon">対象のロックアイコンGameObject</param>
-    /// <param name="productId">チェックするプロダクトID</param>
+    private void OnHelpButtonClicked()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayClickSound();
+        }
+        if (helpPanel != null)
+        {
+            helpPanel.SetActive(true);
+        }
+    }
+
+    private void OnCloseHelpButtonClicked()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayClickSound();
+        }
+        if (helpPanel != null)
+        {
+            helpPanel.SetActive(false);
+        }
+    }
+
+    private void UpdateLockIcons()
+    {
+        SetLockIconState(keigoLock, IAPManager.ProductIds[GameType.Keigo]);
+        SetLockIconState(hiraganaLock, IAPManager.ProductIds[GameType.Hiragana]);
+        // SetLockIconState(katakanaLock, IAPManager.ProductIds[GameType.Katakana]);
+        SetLockIconState(yohoonLock, IAPManager.ProductIds[GameType.Yohoon]);
+        SetLockIconState(kanjiN5Lock, IAPManager.ProductIds[GameType.KanjiN5]);
+        SetLockIconState(kanjiN4Lock, IAPManager.ProductIds[GameType.KanjiN4]);
+        SetLockIconState(kanjiN3Lock, IAPManager.ProductIds[GameType.KanjiN3]);
+        SetLockIconState(kanjiN2Lock, IAPManager.ProductIds[GameType.KanjiN2]);
+        SetLockIconState(kanjiN1Lock, IAPManager.ProductIds[GameType.KanjiN1]);
+        SetLockIconState(katakanaEigoLock, IAPManager.ProductIds[GameType.KatakanaEigo]);
+        SetLockIconState(hinshiLock, IAPManager.ProductIds[GameType.Hinshi]);
+        SetLockIconState(groupLock, IAPManager.ProductIds[GameType.Group]);
+        SetLockIconState(firstKanjiLock, IAPManager.ProductIds[GameType.FirstKanji]);
+    }
+
     private void SetLockIconState(GameObject lockIcon, string productId)
     {
-        if (lockIcon != null)
+        if (lockIcon != null && IAPManager.Instance != null)
         {
-            // IAPManagerから購入状態を取得
             bool isPurchased = IAPManager.Instance.IsProductPurchased(productId);
-            // 購入済みなら非表示 (false)、未購入なら表示 (true)
             lockIcon.SetActive(!isPurchased);
         }
     }
-    
-    /// <summary>
-    /// IAPManagerのOnPurchaseSuccessイベントから呼び出されるハンドラ。
-    /// </summary>
-    /// <param name="productId">購入された商品のID（このメソッドでは未使用）</param>
+
     private void OnPurchaseCompleted(string productId)
     {
-        // 購入が成功したらUIを更新する
-        Debug.Log($"購入成功({productId})を検知。UIを更新します。");
         UpdateLockIcons();
     }
 
-    /// <summary>
-    /// 現在のゲームモードをUIテキストに表示します。
-    /// </summary>
     private void UpdateGameModeDisplay()
     {
-        if (gameModeText == null)
-        {
-            Debug.LogWarning("[GameSelectionUIManager] GameModeTextが設定されていません。");
-            return;
-        }
-
-        if (GameSelectionManager.Instance != null)
+        if (gameModeText != null && GameSelectionManager.Instance != null)
         {
             switch (GameSelectionManager.Instance.CurrentGameMode)
             {
@@ -238,66 +239,45 @@ public class GameSelectionUIManager : MonoBehaviour
                 case GameSelectionManager.GameMode.Multiplayer:
                     gameModeText.text = "Online Play";
                     break;
-                case GameSelectionManager.GameMode.None:
                 default:
                     gameModeText.text = "No Mode Selected";
-                    Debug.LogWarning("[GameSelectionUIManager] GameModeがNoneまたは未定義です。");
                     break;
             }
         }
-        else
-        {
-            gameModeText.text = "error";
-            Debug.LogError("[GameSelectionUIManager] GameSelectionManagerのインスタンスが見つかりません。");
-        }
     }
-    // ▲▲▲ ここまで全て追加 ▲▲▲
 
     private void UpdateRankDisplay()
     {
-    // ▼▼▼ 修正箇所 ▼▼▼
-    // 現在のゲームモードがシングルプレイでない場合は、全てのランクUIを非表示にして処理を終了
-    if (GameSelectionManager.Instance == null ||
-        GameSelectionManager.Instance.CurrentGameMode != GameSelectionManager.GameMode.SinglePlayer)
-    {
-        // 全てのゲームタイプのランクUIを非表示にする
+        if (GameSelectionManager.Instance == null ||
+            GameSelectionManager.Instance.CurrentGameMode != GameSelectionManager.GameMode.SinglePlayer)
+        {
+            foreach (var rankUI in rankUIs)
+            {
+                SetAllRankUIInactive(rankUI);
+            }
+            return;
+        }
+
         foreach (var rankUI in rankUIs)
         {
             SetAllRankUIInactive(rankUI);
+            RankManager.Rank bestRank = RankManager.LoadBestRank(rankUI.gameType);
+            if (bestRank != RankManager.Rank.None)
+            {
+                SetRankUIActive(rankUI, bestRank, true);
+            }
         }
-        return; // ここで処理を終了
-    }
-    // ▲▲▲ ここまで修正 ▲▲▲
-
-    // --- 以下はシングルプレイモードの場合のみ実行される ---
-
-    foreach (var rankUI in rankUIs)
-    {
-        // 最初に、関連する全てのランクUIを一旦非表示にする
-        SetAllRankUIInactive(rankUI);
-
-        // 保存されている最高ランクを読み込む
-        RankManager.Rank bestRank = RankManager.LoadBestRank(rankUI.gameType);
-
-        // もしランクが保存されていたら（Noneでなければ）
-        if (bestRank != RankManager.Rank.None)
-        {
-            // 対応するランクのUIオブジェクトだけを有効化する
-            // SetRankUIActiveの第3引数 'isActive' は常に true になる
-            SetRankUIActive(rankUI, bestRank, true);
-        }
-    }
     }
 
     private void SetAllRankUIInactive(RankUI rankUI)
     {
-        rankUI.rank_S_UI.SetActive(false);
-        rankUI.rank_A_UI.SetActive(false);
-        rankUI.rank_B_UI.SetActive(false);
-        rankUI.rank_C_UI.SetActive(false);
-        rankUI.rank_D_UI.SetActive(false);
-        rankUI.rank_E_UI.SetActive(false);
-        rankUI.rank_F_UI.SetActive(false);
+        if (rankUI.rank_S_UI != null) rankUI.rank_S_UI.SetActive(false);
+        if (rankUI.rank_A_UI != null) rankUI.rank_A_UI.SetActive(false);
+        if (rankUI.rank_B_UI != null) rankUI.rank_B_UI.SetActive(false);
+        if (rankUI.rank_C_UI != null) rankUI.rank_C_UI.SetActive(false);
+        if (rankUI.rank_D_UI != null) rankUI.rank_D_UI.SetActive(false);
+        if (rankUI.rank_E_UI != null) rankUI.rank_E_UI.SetActive(false);
+        if (rankUI.rank_F_UI != null) rankUI.rank_F_UI.SetActive(false);
     }
 
     private void SetRankUIActive(RankUI rankUI, RankManager.Rank rank, bool isActive)
@@ -320,7 +300,6 @@ public class GameSelectionUIManager : MonoBehaviour
         }
     }
 
-    // リスナーを追加するヘルパーメソッド
     private void AddListener(Button button, UnityEngine.Events.UnityAction call)
     {
         if (button != null)
@@ -329,7 +308,6 @@ public class GameSelectionUIManager : MonoBehaviour
         }
     }
 
-    // リスナーを削除するヘルパーメソッド
     private void RemoveListener(Button button, UnityEngine.Events.UnityAction call)
     {
         if (button != null)
@@ -337,21 +315,14 @@ public class GameSelectionUIManager : MonoBehaviour
             button.onClick.RemoveListener(call);
         }
     }
-    // UIボタンから呼び出すための仲介役メソッド
-    #if UNITY_EDITOR || DEVELOPMENT_BUILD
-    // UIボタンから呼び出すための仲介役メソッド
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     public void ResetIAPPurchases_Proxy()
     {
-        // IAPManagerのインスタンスを見つけて、その中のリセットメソッドを呼び出す
         if (IAPManager.Instance != null)
         {
             IAPManager.Instance.ClearAllPurchaseData_DEBUG();
-            // リセット後、UIも即時反映させる
             UpdateLockIcons();
-        }
-        else
-        {
-            Debug.LogError("IAPManagerのインスタンスが見つかりません！");
         }
     }
 #endif

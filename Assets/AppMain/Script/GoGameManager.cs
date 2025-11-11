@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using UnityEngine.UI; // UIコンポーネントを使用するために追加
-using TMPro; // TextMeshProを使用するために追加
+using UnityEngine.UI;
+using TMPro;
 
 public class GoGameManager : MonoBehaviour
 {
@@ -15,6 +15,10 @@ public class GoGameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI descriptionText; // 説明文を表示するTextコンポーネント
     [SerializeField] private Button closeHelpButton; // ヘルプパネルを閉じるボタン
 
+    [Header("Option Panel UI")]
+    [SerializeField] private GameObject optionPanel; // オプション設定画面のパネル
+    [SerializeField] private Button closeOptionButton; // オプション画面を閉じるボタン
+
     private bool isLoading = false;
 
     void Start()
@@ -23,7 +27,7 @@ public class GoGameManager : MonoBehaviour
         if (startButton2 != null) startButton2.SetActive(true);
         if (NoInternetPanel != null) NoInternetPanel.SetActive(false);
 
-        // ヘルプパネルが設定されていれば、初期状態で非表示にし、テキストをセットする
+        // ヘルプパネルの初期化
         if (helpPanel != null)
         {
             helpPanel.SetActive(false);
@@ -33,10 +37,20 @@ public class GoGameManager : MonoBehaviour
             }
         }
 
-        // 閉じるボタンにリスナーを登録
+        // オプションパネルの初期化
+        if (optionPanel != null)
+        {
+            optionPanel.SetActive(false);
+        }
+
+        // ボタンのリスナー登録
         if (closeHelpButton != null)
         {
             closeHelpButton.onClick.AddListener(OnCloseHelpButtonClicked);
+        }
+        if (closeOptionButton != null)
+        {
+            closeOptionButton.onClick.AddListener(OnCloseOptionButtonClicked);
         }
 
         Debug.Log("GoGameManager: Start - 初期UIを設定しました。");
@@ -48,6 +62,10 @@ public class GoGameManager : MonoBehaviour
         if (closeHelpButton != null)
         {
             closeHelpButton.onClick.RemoveListener(OnCloseHelpButtonClicked);
+        }
+        if (closeOptionButton != null)
+        {
+            closeOptionButton.onClick.RemoveListener(OnCloseOptionButtonClicked);
         }
     }
 
@@ -72,8 +90,6 @@ public class GoGameManager : MonoBehaviour
         }
         else
         {
-            // --- 修正点ここから ---
-            // GameSelectionManagerのインスタンスがnullでないことを確認し、SetCurrentGameModeを呼び出す
             if (GameSelectionManager.Instance != null)
             {
                 GameSelectionManager.Instance.SetCurrentGameMode(GameSelectionManager.GameMode.Multiplayer);
@@ -81,12 +97,10 @@ public class GoGameManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError("[GoGameManager] GameSelectionManager.Instance が見つかりません。ゲームモードが正しく設定されない可能性があります。");
-                // フォールバックとしてPlayerPrefsにも保存しておく（既存のコード）
+                Debug.LogError("[GoGameManager] GameSelectionManager.Instance が見つかりません。");
                 PlayerPrefs.SetInt("GameMode", (int)GameSelectionManager.GameMode.Multiplayer);
                 PlayerPrefs.Save();
             }
-            // --- 修正点ここまで ---
 
             Debug.Log("インターネットに接続されています。ゲーム選択シーンへ遷移を開始します。");
             StartCoroutine(LoadGameSelectionSceneWithSound());
@@ -104,8 +118,6 @@ public class GoGameManager : MonoBehaviour
             AudioManager.Instance.PlayClickSound();
         }
 
-        // --- 修正点ここから ---
-        // GameSelectionManagerのインスタンスがnullでないことを確認し、SetCurrentGameModeを呼び出す
         if (GameSelectionManager.Instance != null)
         {
             GameSelectionManager.Instance.SetCurrentGameMode(GameSelectionManager.GameMode.SinglePlayer);
@@ -113,12 +125,10 @@ public class GoGameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[GoGameManager] GameSelectionManager.Instance が見つかりません。ゲームモードが正しく設定されない可能性があります。");
-            // フォールバックとしてPlayerPrefsにも保存しておく（既存のコード）
+            Debug.LogError("[GoGameManager] GameSelectionManager.Instance が見つかりません。");
             PlayerPrefs.SetInt("GameMode", (int)GameSelectionManager.GameMode.SinglePlayer);
             PlayerPrefs.Save();
         }
-        // --- 修正点ここまで ---
 
         Debug.Log("一人用モードを開始します。ゲーム選択シーンへ遷移を開始します。");
         StartCoroutine(LoadGameSelectionSceneWithSound());
@@ -165,6 +175,40 @@ public class GoGameManager : MonoBehaviour
         if (helpPanel != null)
         {
             helpPanel.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// オプションボタンの OnClick イベントから呼び出すためのメソッド。
+    /// </summary>
+    public void OnOptionButtonClicked()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayClickSound();
+        }
+        if (optionPanel != null)
+        {
+            optionPanel.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Option Panelが割り当てられていません。Inspectorで設定してください。");
+        }
+    }
+
+    /// <summary>
+    /// オプションパネルの閉じるボタンの OnClick イベントから呼び出すためのメソッド。
+    /// </summary>
+    private void OnCloseOptionButtonClicked()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayClickSound();
+        }
+        if (optionPanel != null)
+        {
+            optionPanel.SetActive(false);
         }
     }
 

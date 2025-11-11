@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 5e9d8badcafbd884cbe7bd4b1b1e7847
+timeCreated: 1511936587
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 18392
+  packageName: Japanese School Classroom
+  packageVersion: 2.0
+  assetPath: Assets/JP_School classroom_V2/Prefabs/writing_implements01_pen.prefab
+  uploadId: 276371

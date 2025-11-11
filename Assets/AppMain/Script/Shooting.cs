@@ -8,14 +8,18 @@ using TMPro;
 public class Shooting : MonoBehaviour
 {
     [Header("弾の設定")]
-    public GameObject bulletPrefab;
+    // ▼▼▼ 変更点: 単一のプレハブから配列に変更 ▼▼▼
+    [Tooltip("0:通常, 1:火, 2:水, 3:風 の順でInspectorから設定してください")]
+    public GameObject[] bulletPrefabs;
+    private int currentBulletIndex = 0; // 現在選択されている弾のインデックス
+    // public GameObject bulletPrefab; // 元のコード（削除）
+
     public float shotSpeed = 20f;
 
     [Header("発射レートの設定")]
     public float fireRate = 8.0f;
 
-    // ▼▼▼ AudioManagerで管理するため、この行を削除 ▼▼▼
-    // public AudioClip ThrowSE; 
+    // public AudioClip ThrowSE;
 
     [Header("銃の反動の設定")]
     public float recoilRotationAmount = 1.0f;
@@ -132,13 +136,29 @@ public class Shooting : MonoBehaviour
 
     void Shoot()
     {
-        if (bulletPrefab == null)
+        // ▼▼▼ 変更点: 配列とインデックスを使ってチェック ▼▼▼
+        if (bulletPrefabs == null || bulletPrefabs.Length == 0)
         {
-            Debug.LogError("bulletPrefabが設定されていません！");
+            Debug.LogError("bulletPrefabsが設定されていません！");
             return;
         }
 
-        GameObject bullet = Instantiate(bulletPrefab, transform.position, transform.rotation);
+        // 現在のインデックスが範囲外にならないよう安全策（通常は起こりませんが念のため）
+        if (currentBulletIndex >= bulletPrefabs.Length)
+        {
+            currentBulletIndex = 0;
+        }
+
+        GameObject currentBulletPrefab = bulletPrefabs[currentBulletIndex];
+
+        if (currentBulletPrefab == null)
+        {
+             Debug.LogError($"インデックス {currentBulletIndex} の弾Prefabが設定されていません！");
+             return;
+        }
+
+        // ▼▼▼ 変更点: 選択中のプレハブからインスタンス化 ▼▼▼
+        GameObject bullet = Instantiate(currentBulletPrefab, transform.position, transform.rotation);
 
         Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
         if (bulletRb == null)
@@ -151,7 +171,6 @@ public class Shooting : MonoBehaviour
         bulletRb.linearVelocity = transform.forward * shotSpeed;
         Destroy(bullet, 3.0f);
 
-        // ▼▼▼ AudioManagerに銃声の再生を依頼するように修正 ▼▼▼
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayGunshotSound(transform.position);
@@ -178,5 +197,23 @@ public class Shooting : MonoBehaviour
         isShooting = false;
         if (CircleInsideOff != null) CircleInsideOff.SetActive(true);
         if (CircleInsideOn != null) CircleInsideOn.SetActive(false);
+    }
+
+    // ▼▼▼ 追加点: 弾切り替えボタン用のメソッド ▼▼▼
+    /// <summary>
+    /// UIの切り替えボタンを押したときに呼び出す
+    /// </summary>
+    public void OnSwitchBulletButtonPressed()
+    {
+        Debug.Log("ボタンが押されました！"); // このログが出るか確認
+
+        if (bulletPrefabs == null || bulletPrefabs.Length <= 1)
+        {
+             Debug.LogWarning("切り替える弾が設定されていません。");
+             return;
+        }
+
+        currentBulletIndex = (currentBulletIndex + 1) % bulletPrefabs.Length;
+        Debug.Log($"弾を切り替えました。現在のインデックス: {currentBulletIndex}");
     }
 }

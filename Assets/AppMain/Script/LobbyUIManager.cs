@@ -27,11 +27,9 @@ public class LobbyUIManager : MonoBehaviour
     [SerializeField] private InternetConnectionMonitor internetMonitor;
     [SerializeField] private TextMeshProUGUI selectedGameTypeText;
 
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
     [Header("Connection Status UI")]
-    [SerializeField] private GameObject connectionWarningPanel; // 接続失敗時に表示するパネル
-    [SerializeField] private Button closeWarningButton; // 警告パネルを閉じるボタン
-    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
+    [SerializeField] private GameObject connectionWarningPanel;
+    [SerializeField] private Button closeWarningButton;
 
     [Header("Public Lobby Area")]
     [SerializeField] private GameObject publicLobbyArea;
@@ -59,7 +57,6 @@ public class LobbyUIManager : MonoBehaviour
     [Header("Debug UI Elements")]
     [SerializeField] private Button debugSignOutButton;
 
-    // 内部状態管理フラグ
     private bool isProcessing = false;
     private bool isShowingPrivateArea = false;
     private bool hasConnectionTimedOut = false;
@@ -76,17 +73,25 @@ public class LobbyUIManager : MonoBehaviour
         isWaitingAsPrivateHost = false;
         hasConnectionTimedOut = false;
 
-        if (createLobbyButton != null) createLobbyButton.onClick.AddListener(HandleCreatePublicLobbyClick);
-        if (hostRemoveLobbyButton != null) hostRemoveLobbyButton.onClick.AddListener(HandleRemoveClick);
-        if (hostStartGameButton != null) hostStartGameButton.onClick.AddListener(HandleHostStartGameClick);
-        if (clientLeaveLobbyButton != null) clientLeaveLobbyButton.onClick.AddListener(HandleClientLeaveClick);
+        if (createLobbyButton != null) createLobbyButton.onClick.AddListener(OnCreateLobbyClicked);
+        if (hostRemoveLobbyButton != null) hostRemoveLobbyButton.onClick.AddListener(OnHostRemoveLobbyClicked);
+        if (hostStartGameButton != null) hostStartGameButton.onClick.AddListener(OnHostStartGameClicked);
+        if (clientLeaveLobbyButton != null) clientLeaveLobbyButton.onClick.AddListener(OnClientLeaveLobbyClicked);
+        if (retrySignInButton != null) retrySignInButton.onClick.AddListener(OnRetrySignInClicked);
+        if (debugSignOutButton != null) debugSignOutButton.onClick.AddListener(OnDebugSignOutClicked);
+        if (friendsOnlyButton != null) friendsOnlyButton.onClick.AddListener(OnFriendsOnlyClicked);
+        if (createPrivateLobbyButton != null) createPrivateLobbyButton.onClick.AddListener(OnCreatePrivateLobbyClicked);
+        if (joinByCodeButton != null) joinByCodeButton.onClick.AddListener(OnJoinByCodeClicked);
+        if (backFromPrivateAreaButton != null) backFromPrivateAreaButton.onClick.AddListener(OnBackFromPrivateAreaClicked);
+        if (backFromHostWaitButton != null) backFromHostWaitButton.onClick.AddListener(OnBackFromHostWaitClicked);
+        if (closeWarningButton != null) closeWarningButton.onClick.AddListener(OnCloseWarningClicked);
+
         if (lobbyListView != null)
         {
-            lobbyListView.OnRefreshRequested += HandleRefreshClick;
-            lobbyListView.OnJoinRequested += HandleJoinClick;
+            lobbyListView.OnRefreshRequested += OnRefreshRequestedWrapper;
+            lobbyListView.OnJoinRequested += OnJoinRequestedWrapper;
         }
-        if (retrySignInButton != null) retrySignInButton.onClick.AddListener(HandleRetrySignInClick);
-        if (debugSignOutButton != null) debugSignOutButton.onClick.AddListener(HandleDebugSignOutClick);
+
         if (internetMonitor != null) internetMonitor.OnConnectionTimeout += HandleConnectionTimeout;
         if (authManager != null)
         {
@@ -101,35 +106,31 @@ public class LobbyUIManager : MonoBehaviour
             lobbyServiceManager.OnLeftLobby += HandleLeftLobby;
             lobbyServiceManager.OnLobbyListUpdated += HandleLobbyListUpdated;
         }
-        if (friendsOnlyButton != null) friendsOnlyButton.onClick.AddListener(ShowPrivateLobbyArea);
-        if (createPrivateLobbyButton != null) createPrivateLobbyButton.onClick.AddListener(HandleCreatePrivateLobbyClick);
-        if (joinByCodeButton != null) joinByCodeButton.onClick.AddListener(HandleJoinByCodeClick);
-        if (backFromPrivateAreaButton != null) backFromPrivateAreaButton.onClick.AddListener(ShowPublicLobbyArea);
-        if (backFromHostWaitButton != null) backFromHostWaitButton.onClick.AddListener(HandleRemoveClick);
-        // --- ▼▼▼ ここから追加 ▼▼▼ ---
-        if (closeWarningButton != null) closeWarningButton.onClick.AddListener(HideConnectionWarning);
-        // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
         UpdateUI();
-        if (audioManager != null)
-        {
-            audioManager.PlayBGM(audioManager.openingBgm);
-        }
     }
 
     private void OnDisable()
     {
-        if (createLobbyButton != null) createLobbyButton.onClick.RemoveListener(HandleCreatePublicLobbyClick);
-        if (hostRemoveLobbyButton != null) hostRemoveLobbyButton.onClick.RemoveListener(HandleRemoveClick);
-        if (hostStartGameButton != null) hostStartGameButton.onClick.RemoveListener(HandleHostStartGameClick);
-        if (clientLeaveLobbyButton != null) clientLeaveLobbyButton.onClick.RemoveListener(HandleClientLeaveClick);
+        if (createLobbyButton != null) createLobbyButton.onClick.RemoveListener(OnCreateLobbyClicked);
+        if (hostRemoveLobbyButton != null) hostRemoveLobbyButton.onClick.RemoveListener(OnHostRemoveLobbyClicked);
+        if (hostStartGameButton != null) hostStartGameButton.onClick.RemoveListener(OnHostStartGameClicked);
+        if (clientLeaveLobbyButton != null) clientLeaveLobbyButton.onClick.RemoveListener(OnClientLeaveLobbyClicked);
+        if (retrySignInButton != null) retrySignInButton.onClick.RemoveListener(OnRetrySignInClicked);
+        if (debugSignOutButton != null) debugSignOutButton.onClick.RemoveListener(OnDebugSignOutClicked);
+        if (friendsOnlyButton != null) friendsOnlyButton.onClick.RemoveListener(OnFriendsOnlyClicked);
+        if (createPrivateLobbyButton != null) createPrivateLobbyButton.onClick.RemoveListener(OnCreatePrivateLobbyClicked);
+        if (joinByCodeButton != null) joinByCodeButton.onClick.RemoveListener(OnJoinByCodeClicked);
+        if (backFromPrivateAreaButton != null) backFromPrivateAreaButton.onClick.RemoveListener(OnBackFromPrivateAreaClicked);
+        if (backFromHostWaitButton != null) backFromHostWaitButton.onClick.RemoveListener(OnBackFromHostWaitClicked);
+        if (closeWarningButton != null) closeWarningButton.onClick.RemoveListener(OnCloseWarningClicked);
+
         if (lobbyListView != null)
         {
-            lobbyListView.OnRefreshRequested -= HandleRefreshClick;
-            lobbyListView.OnJoinRequested -= HandleJoinClick;
+            lobbyListView.OnRefreshRequested -= OnRefreshRequestedWrapper;
+            lobbyListView.OnJoinRequested -= OnJoinRequestedWrapper;
         }
-        if (retrySignInButton != null) retrySignInButton.onClick.RemoveListener(HandleRetrySignInClick);
-        if (debugSignOutButton != null) debugSignOutButton.onClick.RemoveListener(HandleDebugSignOutClick);
+
         if (internetMonitor != null) internetMonitor.OnConnectionTimeout -= HandleConnectionTimeout;
         if (authManager != null)
         {
@@ -144,21 +145,32 @@ public class LobbyUIManager : MonoBehaviour
             lobbyServiceManager.OnLeftLobby -= HandleLeftLobby;
             lobbyServiceManager.OnLobbyListUpdated -= HandleLobbyListUpdated;
         }
-        if (friendsOnlyButton != null) friendsOnlyButton.onClick.RemoveListener(ShowPrivateLobbyArea);
-        if (createPrivateLobbyButton != null) createPrivateLobbyButton.onClick.RemoveListener(HandleCreatePrivateLobbyClick);
-        if (joinByCodeButton != null) joinByCodeButton.onClick.RemoveListener(HandleJoinByCodeClick);
-        if (backFromPrivateAreaButton != null) backFromPrivateAreaButton.onClick.RemoveListener(ShowPublicLobbyArea);
-        if (backFromHostWaitButton != null) backFromHostWaitButton.onClick.RemoveListener(HandleRemoveClick);
-        // --- ▼▼▼ ここから追加 ▼▼▼ ---
-        if (closeWarningButton != null) closeWarningButton.onClick.RemoveListener(HideConnectionWarning);
-        // --- ▲▲▲ ここまで追加 ▲▲▲ ---
+    }
+
+    private void PlayClickSound()
+    {
         if (audioManager != null)
         {
-            audioManager.StopBGM();
+            audioManager.PlayClickSound();
         }
     }
-    
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
+
+    // Wrapper methods for adding click sound
+    private void OnCreateLobbyClicked() { PlayClickSound(); HandleCreatePublicLobbyClick(); }
+    private void OnHostRemoveLobbyClicked() { PlayClickSound(); HandleRemoveClick(); }
+    private void OnHostStartGameClicked() { PlayClickSound(); HandleHostStartGameClick(); }
+    private void OnClientLeaveLobbyClicked() { PlayClickSound(); HandleClientLeaveClick(); }
+    private void OnRetrySignInClicked() { PlayClickSound(); HandleRetrySignInClick(); }
+    private void OnDebugSignOutClicked() { PlayClickSound(); HandleDebugSignOutClick(); }
+    private void OnFriendsOnlyClicked() { PlayClickSound(); ShowPrivateLobbyArea(); }
+    private void OnCreatePrivateLobbyClicked() { PlayClickSound(); HandleCreatePrivateLobbyClick(); }
+    private void OnJoinByCodeClicked() { PlayClickSound(); HandleJoinByCodeClick(); }
+    private void OnBackFromPrivateAreaClicked() { PlayClickSound(); ShowPublicLobbyArea(); }
+    private void OnBackFromHostWaitClicked() { PlayClickSound(); HandleRemoveClick(); }
+    private void OnCloseWarningClicked() { PlayClickSound(); HideConnectionWarning(); }
+    private void OnRefreshRequestedWrapper() { PlayClickSound(); HandleRefreshClick(); }
+    private void OnJoinRequestedWrapper(Lobby lobby) { PlayClickSound(); HandleJoinClick(lobby); }
+
     private void HideConnectionWarning()
     {
         if (connectionWarningPanel != null)
@@ -166,7 +178,6 @@ public class LobbyUIManager : MonoBehaviour
             connectionWarningPanel.SetActive(false);
         }
     }
-    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
     private void ShowPublicLobbyArea() { isShowingPrivateArea = false; UpdateUI(); }
     private void ShowPrivateLobbyArea() { isShowingPrivateArea = true; UpdateUI(); }
@@ -222,7 +233,6 @@ public class LobbyUIManager : MonoBehaviour
             return;
         }
 
-        // --- ▼▼▼ ここから変更 ▼▼▼ ---
         isProcessing = true;
         SetStatus("ロビーに接続中...");
         UpdateUI();
@@ -232,12 +242,10 @@ public class LobbyUIManager : MonoBehaviour
         isProcessing = false;
         if (!success)
         {
-            // 失敗した場合、警告パネルを表示
             if (connectionWarningPanel != null) connectionWarningPanel.SetActive(true);
         }
         
         UpdateUI();
-        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
     }
 
     private async Task ProcessLobbyTask(Task task)
@@ -380,28 +388,17 @@ public class LobbyUIManager : MonoBehaviour
     {
         switch (gameType)
         {
-            case GameType.None:
-                return "ゲーム未選択";
-            case GameType.JidoushiTadoushi:
-                return "じどうし・たどうし";
-            case GameType.Keigo:
-                return "けいご";
-            case GameType.Hiragana:
-                return "ひらがな";
-            case GameType.Katakana:
-                return "カタカナ";
-            case GameType.Yohoon:
-                return "バビブ・キャキュキョ";
-            case GameType.KatakanaEigo:
-                return "カタカナえいご";
-            case GameType.Hinshi:
-                return "ひんし";
-            case GameType.Group:
-                return "なんグループ";
-            case GameType.FirstKanji:
-                return "かんじ１ねんせい";
-            default:
-                return gameType.ToString();
+            case GameType.None: return "ゲーム未選択";
+            case GameType.JidoushiTadoushi: return "じどうし・たどうし";
+            case GameType.Keigo: return "けいご";
+            case GameType.Hiragana: return "ひらがな";
+            case GameType.Katakana: return "カタカナ";
+            case GameType.Yohoon: return "バビブ・キャキュキョ";
+            case GameType.KatakanaEigo: return "カタカナえいご";
+            case GameType.Hinshi: return "ひんし";
+            case GameType.Group: return "なんグループ";
+            case GameType.FirstKanji: return "かんじ１ねんせい";
+            default: return gameType.ToString();
         }
     }
 
@@ -496,7 +493,6 @@ public class LobbyUIManager : MonoBehaviour
     {
         if (isProcessing) return;
 
-        // --- ▼▼▼ ここから変更 ▼▼▼ ---
         isProcessing = true;
         lobbyListView.SetAllJoinButtonsInteractable(false);
         SetStatus("ロビーに接続中...");
@@ -517,13 +513,11 @@ public class LobbyUIManager : MonoBehaviour
             isProcessing = false;
             if (!success)
             {
-                // 失敗した場合、警告パネルを表示
                 if (connectionWarningPanel != null) connectionWarningPanel.SetActive(true);
                 lobbyListView.SetAllJoinButtonsInteractable(true);
             }
             UpdateUI();
         }
-        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
     }
     private async void HandleRetrySignInClick()
     {

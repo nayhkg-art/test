@@ -32,6 +32,9 @@ public class AudioManager : MonoBehaviour
 
     [Header("BGM Clips")]
     public Sound openingBgm; // タイトルやロビーなどで使用するメインBGM
+    // ▼▼▼ 以下を追加 ▼▼▼
+    public Sound selectionBgm; // セレクション画面用BGM
+    // ▲▲▲ ここまで追加 ▲▲▲
     public Sound battleBgm; // バトルBGM
 
     [Header("Game Over Sound Clips")]
@@ -121,6 +124,11 @@ public class AudioManager : MonoBehaviour
             case "LobbyScene":
                 PlayBGM(openingBgm);
                 break;
+            // ▼▼▼ 以下を追加 ▼▼▼
+            case "GameSelectionScene": // セレクション画面のシーン名
+                PlayBGM(selectionBgm); // セレクション画面用BGMを再生
+                break;
+            // ▲▲▲ ここまで追加 ▲▲▲
             case "School_Classroom":
                 // 例：戦闘シーンに入ったらbattleBgmを再生する
                 // PlayBGM(battleBgm); 
@@ -161,6 +169,7 @@ public class AudioManager : MonoBehaviour
 
     public void StopAllSounds()
     {
+        // ▼▼▼ FindObjectsOfType -> FindObjectsByType に修正 ▼▼▼
         AudioSource[] allAudioSources = FindObjectsByType<AudioSource>(FindObjectsSortMode.None);
 
         foreach (AudioSource audioSrc in allAudioSources)
@@ -191,15 +200,6 @@ public class AudioManager : MonoBehaviour
 
         bgmAudioSource.Play();
         Debug.Log($"BGM '{sound.clip.name}' を再生しました。(個別音量: {sound.volume})");
-    }
-
-    public void StopBGM()
-    {
-        if (bgmAudioSource != null && bgmAudioSource.isPlaying)
-        {
-            bgmAudioSource.Stop();
-            Debug.Log("BGMを停止しました。");
-        }
     }
 
     public void PlaySFX_2D(AudioClip clip)

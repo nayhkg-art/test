@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 8604021a5f601f0479612c00c62c4264
+timeCreated: 1511940443
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 18392
+  packageName: Japanese School Classroom
+  packageVersion: 2.0
+  assetPath: Assets/JP_School classroom_V2/Prefabs/speaker01_pipe1.prefab
+  uploadId: 276371

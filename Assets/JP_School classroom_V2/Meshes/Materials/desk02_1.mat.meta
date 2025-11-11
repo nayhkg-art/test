@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 7bb9b1d4e06a6ec42b59ed761272fcfc
+timeCreated: 1511595426
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 18392
+  packageName: Japanese School Classroom
+  packageVersion: 2.0
+  assetPath: Assets/JP_School classroom_V2/Meshes/Materials/desk02_1.mat
+  uploadId: 276371

@@ -18,7 +18,7 @@ EditorBuildSettings:
     path: Assets/AppMain/Scenes/GameSelectionScene.unity
     guid: 039d2d7739b1c42028f6f5a2ffba2236
   - enabled: 0
-    path: Assets/AppMain/Scenes/School_Classroom1.unity
+    path: Assets/JP_School classroom_V2/Scenes/School_Classroom2.unity
     guid: b64e7bfed3af07540960a741f9195d89
   - enabled: 1
     path: Assets/AppMain/Scenes/School_Classroom.unity

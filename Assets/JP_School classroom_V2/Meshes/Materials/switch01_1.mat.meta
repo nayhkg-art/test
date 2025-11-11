@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: e438fe6838cd9744b9a7d0509dea9e20
+timeCreated: 1511788823
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 18392
+  packageName: Japanese School Classroom
+  packageVersion: 2.0
+  assetPath: Assets/JP_School classroom_V2/Meshes/Materials/switch01_1.mat
+  uploadId: 276371
