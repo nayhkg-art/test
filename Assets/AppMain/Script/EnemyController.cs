@@ -34,6 +34,33 @@ public class EnemyController : MonoBehaviour
 
     private Vector3 wanderDestination;
     private bool isWanderingToDestination = false;
+    private bool isFrozen = false;
+
+
+    public void Freeze(float duration)
+    {
+        if (!isFrozen)
+        {
+            StartCoroutine(FreezeCoroutine(duration));
+        }
+    }
+
+    private System.Collections.IEnumerator FreezeCoroutine(float duration)
+    {
+        isFrozen = true;
+        if (enemyAnimator != null)
+        {
+            enemyAnimator.enabled = false;
+        }
+
+        yield return new WaitForSeconds(duration);
+
+        if (enemyAnimator != null)
+        {
+            enemyAnimator.enabled = true;
+        }
+        isFrozen = false;
+    }
 
     void Start()
     {
@@ -48,6 +75,7 @@ public class EnemyController : MonoBehaviour
 
     void Update()
     {
+        if (isFrozen) return;
         if (enemyAnimator == null) return;
 
         if (attackCooldownTimer > 0f)
