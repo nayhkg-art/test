@@ -137,9 +137,15 @@ public class Heartbeat : NetworkBehaviour
             countdownManager?.StartCountdown();
             timerManager?.StartTimer();
 
-            if (thunderAttackButton != null) thunderAttackButton.gameObject.SetActive(false);
-
-            this.enabled = false;
+            if (thunderAttackButton != null)
+            {
+                thunderAttackButton.interactable = false;
+                thunderAttackButton.onClick.AddListener(OnThunderAttackButtonClicked);
+            }
+            else
+            {
+                Debug.LogError("Thunder Attack Buttonが設定されていません！");
+            }
         }
         else
         {
@@ -667,6 +673,8 @@ public class Heartbeat : NetworkBehaviour
         if (thunderAttackButton != null && !thunderAttackButton.interactable)
         {
             thunderAttackButton.interactable = true;
+
+            if (isSinglePlayer) return;
             
             if (buttonFlashCoroutine != null)
             {
@@ -712,7 +720,16 @@ public class Heartbeat : NetworkBehaviour
 
         thunderAttackButton.interactable = false;
 
-        RequestThunderAttackServerRpc();
+        EnemyController[] enemies = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
+        foreach (EnemyController enemy in enemies)
+        {
+            enemy.Freeze(5f);
+        }
+
+        if (!isSinglePlayer)
+        {
+            RequestThunderAttackServerRpc();
+        }
 
         if (localPlayerStatus != null)
         {
