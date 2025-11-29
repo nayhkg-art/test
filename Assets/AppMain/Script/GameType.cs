@@ -16,5 +16,10 @@ public enum GameType
     KatakanaEigo = 12,    // カタカナ英語
     Hinshi = 13,          // 品詞
     Group = 14,           // グループ分け
-    FirstKanji = 15       // 1年生の漢字
+    FirstKanji = 15,      // 1年生の漢字
+    SecondKanji = 16,     // 2年生の漢字
+    ThirdKanji = 17,      // 3年生の漢字
+    FourthKanji = 18,     // 4年生の漢字
+    FifthKanji = 19,      // 5年生の漢字
+    SixthKanji = 20       // 6年生の漢字
 }
