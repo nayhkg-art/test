@@ -153,6 +153,23 @@ public class TimerManager : MonoBehaviour
         }
     }
 
+    // --- ▼▼▼ 追加：ホストの時間を同期するためのメソッド ▼▼▼ ---
+    public void SetCurrentTime(float time)
+    {
+        // マルチプレイ時のみ同期を受け入れる
+        if (currentGameMode != GameSelectionManager.GameMode.SinglePlayer)
+        {
+            mainTimer = time;
+            
+            // 強制的にタイマー開始フラグが立っていない場合の保険
+            if (!isTimerStart && time > 0)
+            {
+                isTimerStart = true;
+            }
+        }
+    }
+    // --- ▲▲▲ 追加完了 ▲▲▲ ---
+
     public void ResetTimer()
     {
         if (timerCoroutine != null)

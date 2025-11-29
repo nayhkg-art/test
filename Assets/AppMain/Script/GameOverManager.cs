@@ -45,6 +45,12 @@ public class GameOverManager : NetworkBehaviour
     private Text whiteScreenText;
     private TMP_Text whiteScreenTMPText;
 
+    // --- ▼▼▼ 修正：TimeUp用とそれ以外（Finish/GameSet）用の2つのオブジェクトを用意 ▼▼▼ ---
+    [Header("End Text Objects")]
+    [SerializeField] private GameObject timeUpObject;  // 時間切れの時に表示
+    [SerializeField] private GameObject finishObject;  // HP0やシングルの時に表示
+    // --- ▲▲▲ 修正完了 ▲▲▲ ---
+
     [Header("Score Display Texts")]
     [SerializeField] private TMP_Text winMyScoreText;
     [SerializeField] private TMP_Text winFriendScoreText;
@@ -64,9 +70,7 @@ public class GameOverManager : NetworkBehaviour
     [SerializeField] private TMP_Text singlePlayerEnemiesDefeatedText;
 
     [Header("Single Player Rank UI")]
-    // ▼▼▼ 追加: ランクが登場するまでの待ち時間 (秒) ▼▼▼
     [SerializeField] private float rankAppearDelay = 2.0f; 
-    // ▲▲▲ ▲▲▲
     [SerializeField] private GameObject rank_S_UI;
     [SerializeField] private GameObject rank_A_UI;
     [SerializeField] private GameObject rank_B_UI;
@@ -135,6 +139,11 @@ public class GameOverManager : NetworkBehaviour
             whiteScreenText = whiteScreenImage.GetComponentInChildren<Text>();
             whiteScreenTMPText = whiteScreenImage.GetComponentInChildren<TMP_Text>();
         }
+
+        // --- ▼▼▼ 修正：初期化時に両方のテキストオブジェクトを非表示にする ▼▼▼ ---
+        if (timeUpObject != null) timeUpObject.SetActive(false);
+        if (finishObject != null) finishObject.SetActive(false);
+        // --- ▲▲▲ 修正完了 ▲▲▲ ---
 
         ResetRankBackgrounds();
     }
@@ -231,7 +240,9 @@ public class GameOverManager : NetworkBehaviour
 
         if (audioManager != null)
         {
-            StartCoroutine(WhiteOutAndResult(singlePlayerResultWindow, "None"));
+            // --- ▼▼▼ 修正：シングルプレイは「Time Upではない」ので false を渡す（FinishObjectが表示される） ▼▼▼ ---
+            StartCoroutine(WhiteOutAndResult(singlePlayerResultWindow, "None", false));
+            // --- ▲▲▲ 修正完了 ▲▲▲ ---
         }
 
         StartCoroutine(ShowRankUI(reason));
@@ -310,9 +321,7 @@ public class GameOverManager : NetworkBehaviour
             Debug.Log($"[GameOverManager] 背景オブジェクト {rankBgObject.name} をすぐに表示しました。");
         }
 
-        // ▼▼▼ 修正: インスペクターで設定した時間待機 (デフォルト2秒) ▼▼▼
         yield return new WaitForSecondsRealtime(rankAppearDelay);
-        // ▲▲▲ ▲▲▲
 
         if (rankUIToShow != null)
         {
@@ -616,10 +625,16 @@ public class GameOverManager : NetworkBehaviour
 
         SetScoreText(myScoreTextUI, friendScoreTextUI, myScore, friendScore);
 
+        // --- ▼▼▼ 修正: TimeUp(HP負けではない) か判定 ▼▼▼
+        bool isTimeUp = (playerWhoLostByHP.Value == ulong.MaxValue);
+        // --- ▲▲▲ 修正完了 ▲▲▲ ---
+
         if (windowToShow != null)
         {
             Debug.Log($"[GameOverManager] 結果ウィンドウ {windowToShow.name} を表示し、ホワイトアウト処理を開始します。");
-            StartCoroutine(WhiteOutAndResult(windowToShow, soundMethodName));
+            // --- ▼▼▼ 修正: 第3引数にフラグを渡す ▼▼▼
+            StartCoroutine(WhiteOutAndResult(windowToShow, soundMethodName, isTimeUp));
+            // --- ▲▲▲ 修正完了 ▲▲▲ ---
         }
         else
         {
@@ -656,7 +671,8 @@ public class GameOverManager : NetworkBehaviour
         }
     }
 
-    IEnumerator WhiteOutAndResult(GameObject resultWindow, string soundMethodName)
+    // --- ▼▼▼ 修正: TimeUpかどうかで表示を分岐させる処理に変更 ▼▼▼ ---
+    IEnumerator WhiteOutAndResult(GameObject resultWindow, string soundMethodName, bool isTimeUp = false)
     {
         Debug.Log("[GameOverManager] WhiteOutAndResult コルーチン開始。");
         if (whiteScreenImage == null) { Debug.LogError("[GameOverManager] WhiteScreenImageがnullです。"); yield break; }
@@ -668,6 +684,21 @@ public class GameOverManager : NetworkBehaviour
             whiteScreen.transform.SetAsLastSibling(); 
         }
         whiteScreenImage.gameObject.SetActive(true);
+
+        // --- ▼▼▼ 修正: どちらか一方だけを表示する（排他制御） ▼▼▼ ---
+        if (isTimeUp)
+        {
+            // 時間切れの場合
+            if (timeUpObject != null) timeUpObject.SetActive(true);
+            if (finishObject != null) finishObject.SetActive(false);
+        }
+        else
+        {
+            // それ以外（HP0 または シングル）の場合
+            if (timeUpObject != null) timeUpObject.SetActive(false);
+            if (finishObject != null) finishObject.SetActive(true);
+        }
+        // --- ▲▲▲ 修正完了 ▲▲▲ ---
 
         audioManager.StopAllSounds();
 
@@ -681,6 +712,11 @@ public class GameOverManager : NetworkBehaviour
         }
 
         yield return new WaitForSecondsRealtime(2f);
+
+        // --- ▼▼▼ 修正: 両方のテキストを非表示にしてから結果を表示 ▼▼▼ ---
+        if (timeUpObject != null) timeUpObject.SetActive(false);
+        if (finishObject != null) finishObject.SetActive(false);
+        // --- ▲▲▲ 修正完了 ▲▲▲ ---
 
         if (audioManager != null)
         {

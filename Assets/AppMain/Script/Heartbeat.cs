@@ -46,7 +46,7 @@ public class Heartbeat : NetworkBehaviour
     [SerializeField] private GameObject thunderEffectPrefab;
     [Tooltip("雷エフェクトを表示する場所のTransformのリスト")]
     [SerializeField] private List<Transform> opponentFieldTransforms = new List<Transform>();
-[Tooltip("雷エフェクトを表示する場所のTransformのリスト（自分側）")]
+    [Tooltip("雷エフェクトを表示する場所のTransformのリスト（自分側）")]
     [SerializeField] private List<Transform> selfFieldTransforms = new List<Transform>();
 
     [Tooltip("雷攻撃のダメージ量")]
@@ -94,9 +94,7 @@ public class Heartbeat : NetworkBehaviour
     private int opponentDefeatedAttackEnemiesCount = 0;
 
     private Coroutine buttonFlashCoroutine;
-    // --- ▼▼▼ ここから変更 ▼▼▼ ---
     private bool isGameOver = false; // ゲームオーバー状態を管理するフラグ
-    // --- ▲▲▲ ここまで変更 ▲▲▲ ---
 
     private void Awake()
     {
@@ -181,13 +179,10 @@ public class Heartbeat : NetworkBehaviour
 
     void Update()
     {
-        // --- ▼▼▼ ここから変更 ▼▼▼ ---
-        // isGameOver フラグもチェック条件に追加
         if (isGameOver || isDisconnectHandled || isIntentionalDisconnect || !isPlayingGame.Value)
         {
             return;
         }
-        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
 
         float lastHeartbeatTime = 0;
         if (isHostInstance)
@@ -266,10 +261,7 @@ public class Heartbeat : NetworkBehaviour
 
     private void HandleLocalDisconnection()
     {
-        // --- ▼▼▼ ここから変更 ▼▼▼ ---
-        // ゲームオーバー後、または既に切断処理済みなら何もしない
         if (isGameOver || isDisconnectHandled || isIntentionalDisconnect) return;
-        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
         isDisconnectHandled = true;
 
         Debug.LogWarning($"[{(IsHost ? "Host" : "Client")}] 相手との通信が途絶しました。ローカルのゲームを終了します。");
@@ -306,7 +298,6 @@ public class Heartbeat : NetworkBehaviour
         isIntentionalDisconnect = true;
     }
     
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
     /// <summary>
     /// GameOverManagerからゲーム終了を通知してもらうためのメソッド
     /// </summary>
@@ -319,7 +310,6 @@ public class Heartbeat : NetworkBehaviour
             isPlayingGame.Value = false;
         }
     }
-    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
     public override void OnNetworkSpawn()
     {
@@ -352,10 +342,7 @@ public class Heartbeat : NetworkBehaviour
         isClientOnlyInstance = IsClient && !IsHost;
         isDisconnectHandled = false;
         isIntentionalDisconnect = false;
-        // --- ▼▼▼ ここから変更 ▼▼▼ ---
         isGameOver = false; // ゲーム開始時にリセット
-        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
-
 
         disconnectTimeoutFirstPhaseUI?.SetActive(false);
         disconnectTimeoutSecondPhaseUI?.SetActive(false);
@@ -407,13 +394,11 @@ public class Heartbeat : NetworkBehaviour
 
     void OnClientDisconnectedServerSide(ulong clientId)
     {
-        // --- ▼▼▼ ここから変更 ▼▼▼ ---
         // ゲームオーバー後、または既に切断処理済みなら何もしない
         if (isGameOver || isDisconnectHandled)
         {
             return;
         }
-        // --- ▲▲▲ ここまで変更 ▲▲▲ ---
 
         Debug.Log($"[Heartbeat Host] クライアント(ID: {clientId})の切断を検知しました。 isPlayingGame: {isPlayingGame.Value}");
 
@@ -553,6 +538,14 @@ public class Heartbeat : NetworkBehaviour
             int currentScore = scoreAnimeManager != null ? scoreAnimeManager.Score : 0;
             int currentHP = 0;
             int maxHP = 1;
+            // --- ▼▼▼ 追加：現在のタイマー時間を取得 ▼▼▼ ---
+            float currentTimer = 0f;
+            if (timerManager != null)
+            {
+                currentTimer = timerManager.CurrentTime;
+            }
+            // --- ▲▲▲ 追加完了 ▲▲▲ ---
+
             if (localPlayerStatus != null)
             {
                 currentHP = localPlayerStatus.HP;
@@ -561,17 +554,20 @@ public class Heartbeat : NetworkBehaviour
 
             if (IsHost)
             {
-                UpdateClientStateClientRpc(currentScore, currentHP, maxHP, defeatedAttackEnemiesCount);
+                // --- ▼▼▼ 修正：currentTimer 引数を追加して送信 ▼▼▼ ---
+                UpdateClientStateClientRpc(currentScore, currentHP, maxHP, defeatedAttackEnemiesCount, currentTimer);
             }
             else if (IsClient)
             {
+                // クライアントからホストへはタイマー時間を送る必要はない（ホストが正のため）
                 UpdateHostStateServerRpc(currentScore, currentHP, maxHP, defeatedAttackEnemiesCount);
             }
         }
     }
 
+    // --- ▼▼▼ 修正：引数に hostRemainingTime を追加 ▼▼▼ ---
     [ClientRpc]
-    void UpdateClientStateClientRpc(int hostScore, int hostHP, int hostMaxHP, int hostDefeatedCount)
+    void UpdateClientStateClientRpc(int hostScore, int hostHP, int hostMaxHP, int hostDefeatedCount, float hostRemainingTime)
     {
         if (!IsHost)
         {
@@ -581,6 +577,13 @@ public class Heartbeat : NetworkBehaviour
                 if (friendScoreText != null) friendScoreText.text = $"{hostScore}";
                 if (hostMaxHP > 0) friendHpTarget = (float)hostHP / hostMaxHP;
                 opponentDefeatedAttackEnemiesCount = hostDefeatedCount;
+
+                // --- ▼▼▼ 追加：ホストの時間を受け取って自分のタイマーを同期する ▼▼▼ ---
+                if (timerManager != null)
+                {
+                    timerManager.SetCurrentTime(hostRemainingTime);
+                }
+                // --- ▲▲▲ 追加完了 ▲▲▲ ---
             }
         }
     }
