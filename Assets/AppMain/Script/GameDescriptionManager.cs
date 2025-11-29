@@ -35,6 +35,17 @@ public static class GameDescriptionManager
             case GameType.FirstKanji:
                 return "【1ねんせいのかんじゲーム】\n漢字のよみかたを選ぶ問題です。小学一年生で勉強する漢字が出題されます。\n例えば「山」という問題なら「やま」を選ぶと正解です。\n[First Grade Kanji Game]\nThis is a game where you choose the correct reading for a kanji character. The questions feature kanji learned in the first grade of elementary school. \nFor example, if the question is the kanji '山', the correct answer is the reading 'やま' （yama）.\n.";
 
+            case GameType.SecondKanji:
+                return "【2ねんせいのかんじゲーム】\n漢字のよみかたを選ぶ問題です。小学二年生で勉強する漢字が出題されます。\n[Second Grade Kanji Game]\nThis is a game where you choose the correct reading for a kanji character. The questions feature kanji learned in the second grade of elementary school.";
+            case GameType.ThirdKanji:
+                return "【3ねんせいのかんじゲーム】\n漢字のよみかたを選ぶ問題です。小学三年生で勉強する漢字が出題されます。\n[Third Grade Kanji Game]\nThis is a game where you choose the correct reading for a kanji character. The questions feature kanji learned in the third grade of elementary school.";
+            case GameType.FourthKanji:
+                return "【4ねんせいのかんじゲーム】\n漢字のよみかたを選ぶ問題です。小学四年生で勉強する漢字が出題されます。\n[Fourth Grade Kanji Game]\nThis is a game where you choose the correct reading for a kanji character. The questions feature kanji learned in the fourth grade of elementary school.";
+            case GameType.FifthKanji:
+                return "【5ねんせいのかんじゲーム】\n漢字のよみかたを選ぶ問題です。小学五年生で勉強する漢字が出題されます。\n[Fifth Grade Kanji Game]\nThis is a game where you choose the correct reading for a kanji character. The questions feature kanji learned in the fifth grade of elementary school.";
+            case GameType.SixthKanji:
+                return "【6ねんせいのかんじゲーム】\n漢字のよみかたを選ぶ問題です。小学六年生で勉強する漢字が出題されます。\n[Sixth Grade Kanji Game]\nThis is a game where you choose the correct reading for a kanji character. The questions feature kanji learned in the sixth grade of elementary school.";
+
             // 説明文がないゲームタイプの場合は null を返す
             default:
                 return null;

@@ -23,6 +23,11 @@ public class QuestionManager : MonoBehaviour
     public List<QuestionPair> ListHinshi = new List<QuestionPair>();
     public List<QuestionPair> ListGroup = new List<QuestionPair>();
     public List<QuestionPair> ListFirstKanji = new List<QuestionPair>();
+    public List<QuestionPair> ListSecondKanji = new List<QuestionPair>();
+    public List<QuestionPair> ListThirdKanji = new List<QuestionPair>();
+    public List<QuestionPair> ListFourthKanji = new List<QuestionPair>();
+    public List<QuestionPair> ListFifthKanji = new List<QuestionPair>();
+    public List<QuestionPair> ListSixthKanji = new List<QuestionPair>();
 
     public List<QuestionPair> CurrentList = new List<QuestionPair>();
     public QuestionPair CurrentQuestionPair;
@@ -111,6 +116,21 @@ public class QuestionManager : MonoBehaviour
 
         csvLoader.csvFileName = "FirstKanjiQuestions";
         ListFirstKanji = csvLoader.LoadQuestionsFromCSV();
+
+        csvLoader.csvFileName = "SecondKanjiQuestions";
+        ListSecondKanji = csvLoader.LoadQuestionsFromCSV();
+
+        csvLoader.csvFileName = "ThirdKanjiQuestions";
+        ListThirdKanji = csvLoader.LoadQuestionsFromCSV();
+
+        csvLoader.csvFileName = "FourthKanjiQuestions";
+        ListFourthKanji = csvLoader.LoadQuestionsFromCSV();
+
+        csvLoader.csvFileName = "FifthKanjiQuestions";
+        ListFifthKanji = csvLoader.LoadQuestionsFromCSV();
+
+        csvLoader.csvFileName = "SixthKanjiQuestions";
+        ListSixthKanji = csvLoader.LoadQuestionsFromCSV();
     }
 
     public void Start()
@@ -268,6 +288,31 @@ public class QuestionManager : MonoBehaviour
             case GameType.FirstKanji:
                 CurrentList.AddRange(ListFirstKanji);
                 Debug.Log("[QuestionManager] 問題リスト: 1年生の漢字");
+                break;
+
+            case GameType.SecondKanji:
+                CurrentList.AddRange(ListSecondKanji);
+                Debug.Log("[QuestionManager] 問題リスト: 2年生の漢字");
+                break;
+
+            case GameType.ThirdKanji:
+                CurrentList.AddRange(ListThirdKanji);
+                Debug.Log("[QuestionManager] 問題リスト: 3年生の漢字");
+                break;
+
+            case GameType.FourthKanji:
+                CurrentList.AddRange(ListFourthKanji);
+                Debug.Log("[QuestionManager] 問題リスト: 4年生の漢字");
+                break;
+
+            case GameType.FifthKanji:
+                CurrentList.AddRange(ListFifthKanji);
+                Debug.Log("[QuestionManager] 問題リスト: 5年生の漢字");
+                break;
+
+            case GameType.SixthKanji:
+                CurrentList.AddRange(ListSixthKanji);
+                Debug.Log("[QuestionManager] 問題リスト: 6年生の漢字");
                 break;
 
             default:

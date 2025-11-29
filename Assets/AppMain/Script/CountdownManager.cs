@@ -144,6 +144,11 @@ public class CountdownManager : MonoBehaviour
                 case GameType.Hinshi:
                 case GameType.Group:
                 case GameType.FirstKanji:
+                case GameType.SecondKanji:
+                case GameType.ThirdKanji:
+                case GameType.FourthKanji:
+                case GameType.FifthKanji:
+                case GameType.SixthKanji:
                     Debug.Log($"CountdownManager: {selectedGameType} モード（漢字ルール）の最初の敵をスポーンします。");
                     spawnEnemyManager.StartKanjiModeInitialSpawn();
                     break;
@@ -187,6 +192,11 @@ public class CountdownManager : MonoBehaviour
             case GameType.KanjiN2:
             case GameType.KanjiN1:
             case GameType.FirstKanji:
+            case GameType.SecondKanji:
+            case GameType.ThirdKanji:
+            case GameType.FourthKanji:
+            case GameType.FifthKanji:
+            case GameType.SixthKanji:
                 questionText.text = "かんじをよんで";
                 break;
             case GameType.KatakanaEigo:
