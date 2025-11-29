@@ -21,6 +21,11 @@ public class GameSelectionUIManager : MonoBehaviour
     [SerializeField] private Button hinshiButton;
     [SerializeField] private Button groupButton;
     [SerializeField] private Button firstKanjiButton;
+    [SerializeField] private Button secondKanjiButton;
+    [SerializeField] private Button thirdKanjiButton;
+    [SerializeField] private Button fourthKanjiButton;
+    [SerializeField] private Button fifthKanjiButton;
+    [SerializeField] private Button sixthKanjiButton;
 
     // --- 使用しないボタン（インスペクターに残っていてもコードで制御するため保持、またはnull許容） ---
     [Header("Unused / Hidden Buttons")]
@@ -150,6 +155,11 @@ public class GameSelectionUIManager : MonoBehaviour
         AddListener(hinshiButton, GameSelectionManager.Instance.OnHinshiSelected);
         AddListener(groupButton, GameSelectionManager.Instance.OnGroupSelected);
         AddListener(firstKanjiButton, GameSelectionManager.Instance.OnFirstKanjiSelected);
+        AddListener(secondKanjiButton, GameSelectionManager.Instance.OnSecondKanjiSelected);
+        AddListener(thirdKanjiButton, GameSelectionManager.Instance.OnThirdKanjiSelected);
+        AddListener(fourthKanjiButton, GameSelectionManager.Instance.OnFourthKanjiSelected);
+        AddListener(fifthKanjiButton, GameSelectionManager.Instance.OnFifthKanjiSelected);
+        AddListener(sixthKanjiButton, GameSelectionManager.Instance.OnSixthKanjiSelected);
         
         AddListener(backToTitleButton, GameSelectionManager.Instance.OnBackToTitle);
 
@@ -176,6 +186,11 @@ public class GameSelectionUIManager : MonoBehaviour
         RemoveListener(hinshiButton, GameSelectionManager.Instance.OnHinshiSelected);
         RemoveListener(groupButton, GameSelectionManager.Instance.OnGroupSelected);
         RemoveListener(firstKanjiButton, GameSelectionManager.Instance.OnFirstKanjiSelected);
+        RemoveListener(secondKanjiButton, GameSelectionManager.Instance.OnSecondKanjiSelected);
+        RemoveListener(thirdKanjiButton, GameSelectionManager.Instance.OnThirdKanjiSelected);
+        RemoveListener(fourthKanjiButton, GameSelectionManager.Instance.OnFourthKanjiSelected);
+        RemoveListener(fifthKanjiButton, GameSelectionManager.Instance.OnFifthKanjiSelected);
+        RemoveListener(sixthKanjiButton, GameSelectionManager.Instance.OnSixthKanjiSelected);
         
         RemoveListener(backToTitleButton, GameSelectionManager.Instance.OnBackToTitle);
 

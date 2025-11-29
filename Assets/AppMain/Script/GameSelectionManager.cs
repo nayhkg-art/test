@@ -67,6 +67,11 @@ public class GameSelectionManager : MonoBehaviour
     public void OnHinshiSelected() => SelectGameType(GameType.Hinshi);
     public void OnGroupSelected() => SelectGameType(GameType.Group);
     public void OnFirstKanjiSelected() => SelectGameType(GameType.FirstKanji);
+    public void OnSecondKanjiSelected() => SelectGameType(GameType.SecondKanji);
+    public void OnThirdKanjiSelected() => SelectGameType(GameType.ThirdKanji);
+    public void OnFourthKanjiSelected() => SelectGameType(GameType.FourthKanji);
+    public void OnFifthKanjiSelected() => SelectGameType(GameType.FifthKanji);
+    public void OnSixthKanjiSelected() => SelectGameType(GameType.SixthKanji);
 
     private void SelectGameType(GameType gameType)
     {
