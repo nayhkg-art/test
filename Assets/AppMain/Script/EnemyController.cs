@@ -9,9 +9,6 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float normalSpeed = 1.5f;
     [SerializeField] private float chaseSpeed = 3.5f;
 
-    // --- 削除 ---
-    // wanderRadius と wanderTimer は使用しないため削除しました。
-
     [Header("攻撃設定")]
     [SerializeField] private float attackRange = 2f;
     [SerializeField] private float attackInterval = 2f;
@@ -29,9 +26,6 @@ public class EnemyController : MonoBehaviour
     private float rotationCooldownTimer = 0f;
 
     private Transform target;
-    // --- 削除 ---
-    // timer は待機時間に使用していたため削除しました。
-
     private Vector3 wanderDestination;
     private bool isWanderingToDestination = false;
     private bool isFrozen = false;
@@ -60,6 +54,38 @@ public class EnemyController : MonoBehaviour
             enemyAnimator.enabled = true;
         }
         isFrozen = false;
+        // 【修正】フリーズ解除後にターゲットがいなければ、IsRunningをfalseにする
+        if (target == null)
+        {
+            enemyAnimator.SetBool("IsRunning", false);
+        }
+    }
+
+    public void OnShieldBroken()
+    {
+        if (enemyAnimator != null)
+        {
+            enemyAnimator.SetTrigger("Damage");
+            // 【追加】シールド破壊後は一度停止（アイドル）させる
+            enemyAnimator.SetBool("IsRunning", false);
+        }
+
+        // 驚いている間は移動や攻撃をさせない（例: 1.5秒間）
+        StartCoroutine(StunCoroutine(1.5f));
+    }
+
+    private System.Collections.IEnumerator StunCoroutine(float duration)
+    {
+        isFrozen = true;
+
+        yield return new WaitForSeconds(duration);
+
+        isFrozen = false;
+        // 【追加】スタン解除後にターゲットがいなければ、IsRunningをfalseにする
+        if (target == null)
+        {
+            enemyAnimator.SetBool("IsRunning", false);
+        }
     }
 
     void Start()
@@ -69,6 +95,7 @@ public class EnemyController : MonoBehaviour
             Debug.LogError("InspectorでEnemy Animatorが設定されていません！", this.gameObject);
         }
 
+        // 【修正】最初は必ずアイドルアニメーションから始める
         enemyAnimator.SetBool("IsRunning", false);
         transform.position = ClampPositionToArea(transform.position);
     }
@@ -101,6 +128,7 @@ public class EnemyController : MonoBehaviour
     private void Chase()
     {
         transform.LookAt(new Vector3(target.position.x, transform.position.y, target.position.z));
+        // 【修正】ターゲットを追跡中は走る
         enemyAnimator.SetBool("IsRunning", true);
 
         float distance = Vector3.Distance(transform.position, target.position);
@@ -110,6 +138,8 @@ public class EnemyController : MonoBehaviour
             if (attackCooldownTimer <= 0f)
             {
                 AttackPlayer();
+                // 【追加】攻撃中は一時的に停止（アニメーションはAttackトリガーで処理される）
+                enemyAnimator.SetBool("IsRunning", false); 
             }
         }
         else
@@ -133,7 +163,8 @@ public class EnemyController : MonoBehaviour
 
     private void Wander()
     {
-        enemyAnimator.SetBool("IsRunning", false);
+        // 【修正】徘徊中は移動するが、アニメーションはIdleにする
+        enemyAnimator.SetBool("IsRunning", false); 
 
         // エリアの境界線に近づき、かつ回転のクールダウンが終わっていたら回転
         if (IsNearBoundary(0.5f) && rotationCooldownTimer <= 0f)
@@ -144,8 +175,6 @@ public class EnemyController : MonoBehaviour
             SetNewWanderDestination();
             return;
         }
-
-        // --- ▼▼▼ ここからが重要な変更点 ▼▼▼ ---
 
         // 目的地がなければ、すぐに新しい目的地を設定
         if (!isWanderingToDestination)
@@ -161,7 +190,6 @@ public class EnemyController : MonoBehaviour
         {
             SetNewWanderDestination();
         }
-        // --- ▲▲▲ ここまでが重要な変更点 ▲▲▲ ---
     }
 
     /// <summary>
@@ -195,10 +223,31 @@ public class EnemyController : MonoBehaviour
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
+        // 【追加】ターゲットが設定されたら、走るアニメーションにする
+        if (enemyAnimator != null)
+        {
+            enemyAnimator.SetBool("IsRunning", true);
+        }
     }
 
     public void LoseTarget()
     {
         target = null;
+        // 【追加】ターゲットを見失ったら、アイドルアニメーションにする
+        if (enemyAnimator != null)
+        {
+            enemyAnimator.SetBool("IsRunning", false);
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        float centerX = patrolArea.x + patrolArea.width / 2;
+        float centerZ = patrolArea.y + patrolArea.height / 2;
+        float centerY = transform.position.y;
+        Vector3 center = new Vector3(centerX, centerY, centerZ);
+        Vector3 size = new Vector3(patrolArea.width, 0.1f, patrolArea.height);
+        Gizmos.DrawWireCube(center, size);
     }
 }

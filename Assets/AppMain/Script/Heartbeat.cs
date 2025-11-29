@@ -46,6 +46,9 @@ public class Heartbeat : NetworkBehaviour
     [SerializeField] private GameObject thunderEffectPrefab;
     [Tooltip("雷エフェクトを表示する場所のTransformのリスト")]
     [SerializeField] private List<Transform> opponentFieldTransforms = new List<Transform>();
+[Tooltip("雷エフェクトを表示する場所のTransformのリスト（自分側）")]
+    [SerializeField] private List<Transform> selfFieldTransforms = new List<Transform>();
+
     [Tooltip("雷攻撃のダメージ量")]
     [SerializeField] private int thunderAttackDamage = 10;
     [Tooltip("雷攻撃の効果音(相手側で鳴る)")]
@@ -716,6 +719,25 @@ public class Heartbeat : NetworkBehaviour
             }
         }
         
+
+        // 自分側（ローカル）にも雷エフェクトを発生させる
+        if (thunderEffectPrefab != null && selfFieldTransforms.Count > 0)
+        {
+            foreach (Transform spawnPoint in selfFieldTransforms)
+            {
+                if (spawnPoint != null)
+                {
+                    // 相手側と同じようにPrefabを生成し、2秒後に破棄する
+                    GameObject effect = Instantiate(thunderEffectPrefab, spawnPoint.position, spawnPoint.rotation);
+                    Destroy(effect, 2.0f);
+                }
+            }
+        }
+        else
+        {
+            // selfFieldTransformsが未設定の場合の警告
+            Debug.LogWarning("[Heartbeat] 自分側の雷エフェクトのPrefabまたは表示位置(selfFieldTransforms)が設定されていません。");
+        }
         StartCoroutine(ShowNotificationRoutine());
 
         thunderAttackButton.interactable = false;

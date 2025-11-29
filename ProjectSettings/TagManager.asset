@@ -12,6 +12,11 @@ TagManager:
   - BlueEnemy
   - wall
   - AttackEnemy
+  - Bullet
+  - Bullet_Fire
+  - Bullet_Water
+  - Bullet_Wind
+  - Shield
   layers:
   - Default
   - TransparentFX

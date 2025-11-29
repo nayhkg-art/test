@@ -39,8 +39,9 @@ public class GameOverManager : NetworkBehaviour
 
     [SerializeField] private GameObject mainCanvas;
     [Header("White Screen Fade")]
-    public GameObject whiteScreen;
+    public GameObject whiteScreen; // 親オブジェクト
     public Image whiteScreenImage;
+    [SerializeField] private float fadeDuration = 1.0f; // フェードアウトにかかる時間
     private Text whiteScreenText;
     private TMP_Text whiteScreenTMPText;
 
@@ -52,19 +53,20 @@ public class GameOverManager : NetworkBehaviour
     [SerializeField] private TMP_Text drawMyScoreText;
     [SerializeField] private TMP_Text drawFriendScoreText;
 
-    // --- ▼▼▼ ここから修正 ▼▼▼ ---
     [Header("Single Player UI")]
     [SerializeField] private GameObject singlePlayerResultWindow;
     [SerializeField] private TMP_Text singlePlayerScoreText;
-    [SerializeField] private TMP_Text singlePlayerFinalTimeText; // タイム表示用のUI
+    [SerializeField] private TMP_Text singlePlayerFinalTimeText;
 
-    private TimerManager timerManager; // TimerManagerへの参照
-    // --- ▲▲▲ ここまで修正 ▲▲▲ ---
+    private TimerManager timerManager;
 
     [Header("Stats Display Texts")]
     [SerializeField] private TMP_Text singlePlayerEnemiesDefeatedText;
 
     [Header("Single Player Rank UI")]
+    // ▼▼▼ 追加: ランクが登場するまでの待ち時間 (秒) ▼▼▼
+    [SerializeField] private float rankAppearDelay = 2.0f; 
+    // ▲▲▲ ▲▲▲
     [SerializeField] private GameObject rank_S_UI;
     [SerializeField] private GameObject rank_A_UI;
     [SerializeField] private GameObject rank_B_UI;
@@ -73,7 +75,17 @@ public class GameOverManager : NetworkBehaviour
     [SerializeField] private GameObject rank_E_UI;
     [SerializeField] private GameObject rank_F_UI;
 
-    [Header("Single Player Rank Sounds")]
+    [Header("Single Player Rank Backgrounds")]
+    [SerializeField] private GameObject rank_S_Bg_Object;
+    [SerializeField] private GameObject rank_A_Bg_Object;
+    [SerializeField] private GameObject rank_B_Bg_Object;
+    [SerializeField] private GameObject rank_C_Bg_Object;
+    [SerializeField] private GameObject rank_D_Bg_Object;
+    [SerializeField] private GameObject rank_E_Bg_Object;
+    [SerializeField] private GameObject rank_F_Bg_Object;
+
+    [Header("Single Player Rank Sounds (SFX)")]
+    [SerializeField] private AudioClip rankSlideSound; 
     [SerializeField] private AudioClip rank_S_Sound;
     [SerializeField] private AudioClip rank_A_Sound;
     [SerializeField] private AudioClip rank_B_Sound;
@@ -82,6 +94,18 @@ public class GameOverManager : NetworkBehaviour
     [SerializeField] private AudioClip rank_E_Sound;
     [SerializeField] private AudioClip rank_F_Sound;
 
+    [Range(0f, 1f)] [SerializeField] private float rankSoundVolume = 1.0f;
+    [Range(1, 5)]   [SerializeField] private int rankSoundLayerCount = 2;
+
+    [Header("Single Player Rank BGM")]
+    [SerializeField] private AudioClip rank_S_Bgm;
+    [SerializeField] private AudioClip rank_A_Bgm;
+    [SerializeField] private AudioClip rank_B_Bgm;
+    [SerializeField] private AudioClip rank_C_Bgm;
+    [SerializeField] private AudioClip rank_D_Bgm;
+    [SerializeField] private AudioClip rank_E_Bgm;
+    [SerializeField] private AudioClip rank_F_Bgm;
+    [Range(0f, 1f)] [SerializeField] private float rankBgmVolume = 0.5f;
 
     private void Awake()
     {
@@ -96,14 +120,11 @@ public class GameOverManager : NetworkBehaviour
             Debug.LogError("AudioManagerが見つかりません。");
         }
 
-        // --- ▼▼▼ ここから修正 ▼▼▼ ---
-        // TimerManagerのインスタンスを検索して保持
         timerManager = FindFirstObjectByType<TimerManager>();
         if (timerManager == null)
         {
             Debug.LogError("TimerManagerが見つかりません。");
         }
-        // --- ▲▲▲ ここまで修正 ▲▲▲ ---
 
         if (heartbeat == null)
         {
@@ -114,6 +135,19 @@ public class GameOverManager : NetworkBehaviour
             whiteScreenText = whiteScreenImage.GetComponentInChildren<Text>();
             whiteScreenTMPText = whiteScreenImage.GetComponentInChildren<TMP_Text>();
         }
+
+        ResetRankBackgrounds();
+    }
+
+    private void ResetRankBackgrounds()
+    {
+        if (rank_S_Bg_Object != null) rank_S_Bg_Object.SetActive(false);
+        if (rank_A_Bg_Object != null) rank_A_Bg_Object.SetActive(false);
+        if (rank_B_Bg_Object != null) rank_B_Bg_Object.SetActive(false);
+        if (rank_C_Bg_Object != null) rank_C_Bg_Object.SetActive(false);
+        if (rank_D_Bg_Object != null) rank_D_Bg_Object.SetActive(false);
+        if (rank_E_Bg_Object != null) rank_E_Bg_Object.SetActive(false);
+        if (rank_F_Bg_Object != null) rank_F_Bg_Object.SetActive(false);
     }
 
     public void GameOver(GameOverReason reason)
@@ -171,19 +205,12 @@ public class GameOverManager : NetworkBehaviour
                 singlePlayerScoreText.text = $"{scoreAnimeManager.Score}";
             }
 
-            // --- ▼▼▼ ここから修正 ▼▼▼ ---
-            // 最終タイムを表示する処理
             if (singlePlayerFinalTimeText != null && timerManager != null)
             {
-                // TimerManagerから最終タイムを取得
                 float finalTime = timerManager.CurrentTime;
-                
-                // mm:ss.ff 形式にフォーマット
                 int minutes = (int)(finalTime / 60);
                 int seconds = (int)(finalTime % 60);
                 int centiseconds = (int)((finalTime * 100) % 100);
-                
-                // UIテキストに設定
                 singlePlayerFinalTimeText.text = string.Format("{0:00}:{1:00}:{2:00}", minutes, seconds, centiseconds);
             }
             else
@@ -191,7 +218,6 @@ public class GameOverManager : NetworkBehaviour
                 if (singlePlayerFinalTimeText == null) Debug.LogError("singlePlayerFinalTimeTextが設定されていません！");
                 if (timerManager == null) Debug.LogError("timerManagerが見つかりませんでした！");
             }
-            // --- ▲▲▲ ここまで修正 ▲▲▲ ---
 
             if (singlePlayerEnemiesDefeatedText != null)
             {
@@ -205,60 +231,88 @@ public class GameOverManager : NetworkBehaviour
 
         if (audioManager != null)
         {
-            StartCoroutine(WhiteOutAndResult(singlePlayerResultWindow, "PlayWinSound"));
+            StartCoroutine(WhiteOutAndResult(singlePlayerResultWindow, "None"));
         }
 
-        // ランク計算と表示
         StartCoroutine(ShowRankUI(reason));
     }
 
     private IEnumerator ShowRankUI(GameOverReason reason)
     {
-        yield return new WaitForSeconds(5.0f);
-
-        GameObject rankUIToShow = null;
-        AudioClip rankSound = null;
-
         float accuracy = 0f;
         if (QuestionManager.TotalEnemyNum > 0)
         {
             accuracy = (float)QuestionManager.CorrectAnswerNum / QuestionManager.TotalEnemyNum;
         }
 
-         RankManager.Rank rank = RankManager.GetRankFromAccuracy(accuracy);
+        RankManager.Rank rank = RankManager.GetRankFromAccuracy(accuracy);
         RankManager.SaveBestRank(GameSelectionManager.SelectedGameType, rank);
+        if (scoreAnimeManager != null)
+        {
+            RankManager.SaveBestScore(GameSelectionManager.SelectedGameType, scoreAnimeManager.Score);
+        }
+
+        GameObject rankUIToShow = null;
+        AudioClip rankSound = null;
+        AudioClip rankBgm = null;
+        GameObject rankBgObject = null;
 
         switch (rank)
         {
             case RankManager.Rank.S:
                 rankUIToShow = rank_S_UI;
                 rankSound = rank_S_Sound;
+                rankBgm = rank_S_Bgm;
+                rankBgObject = rank_S_Bg_Object;
                 break;
             case RankManager.Rank.A:
                 rankUIToShow = rank_A_UI;
                 rankSound = rank_A_Sound;
+                rankBgm = rank_A_Bgm;
+                rankBgObject = rank_A_Bg_Object;
                 break;
             case RankManager.Rank.B:
                 rankUIToShow = rank_B_UI;
                 rankSound = rank_B_Sound;
+                rankBgm = rank_B_Bgm;
+                rankBgObject = rank_B_Bg_Object;
                 break;
             case RankManager.Rank.C:
                 rankUIToShow = rank_C_UI;
                 rankSound = rank_C_Sound;
+                rankBgm = rank_C_Bgm;
+                rankBgObject = rank_C_Bg_Object;
                 break;
             case RankManager.Rank.D:
                 rankUIToShow = rank_D_UI;
                 rankSound = rank_D_Sound;
+                rankBgm = rank_D_Bgm;
+                rankBgObject = rank_D_Bg_Object;
                 break;
             case RankManager.Rank.E:
                 rankUIToShow = rank_E_UI;
                 rankSound = rank_E_Sound;
+                rankBgm = rank_E_Bgm;
+                rankBgObject = rank_E_Bg_Object;
                 break;
             case RankManager.Rank.F:
                 rankUIToShow = rank_F_UI;
                 rankSound = rank_F_Sound;
+                rankBgm = rank_F_Bgm;
+                rankBgObject = rank_F_Bg_Object;
                 break;
         }
+
+        ResetRankBackgrounds();
+        if (rankBgObject != null)
+        {
+            rankBgObject.SetActive(true);
+            Debug.Log($"[GameOverManager] 背景オブジェクト {rankBgObject.name} をすぐに表示しました。");
+        }
+
+        // ▼▼▼ 修正: インスペクターで設定した時間待機 (デフォルト2秒) ▼▼▼
+        yield return new WaitForSecondsRealtime(rankAppearDelay);
+        // ▲▲▲ ▲▲▲
 
         if (rankUIToShow != null)
         {
@@ -277,10 +331,15 @@ public class GameOverManager : NetworkBehaviour
             rankRectTransform.anchoredPosition = startPosition;
             rankUIToShow.SetActive(true);
 
+            if (rankSlideSound != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(rankSlideSound);
+            }
+
             float elapsedTime = 0f;
             while (elapsedTime < animationDuration)
             {
-                elapsedTime += Time.deltaTime;
+                elapsedTime += Time.unscaledDeltaTime;
                 float t = Mathf.SmoothStep(0f, 1f, elapsedTime / animationDuration);
                 rankRectTransform.anchoredPosition = Vector2.Lerp(startPosition, targetPosition, t);
                 yield return null;
@@ -290,7 +349,19 @@ public class GameOverManager : NetworkBehaviour
 
             if (rankSound != null && AudioManager.Instance != null)
             {
-                AudioManager.Instance.PlaySFX(rankSound);
+                for (int i = 0; i < rankSoundLayerCount; i++)
+                {
+                    AudioManager.Instance.PlaySFX(rankSound, rankSoundVolume);
+                }
+                Debug.Log($"[GameOverManager] ランク音を {rankSoundLayerCount} 回重ねて再生しました。");
+
+                yield return new WaitForSecondsRealtime(rankSound.length);
+            }
+
+            if (rankBgm != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayBGM(rankBgm, rankBgmVolume);
+                Debug.Log($"[GameOverManager] ランクBGM {rankBgm.name} を再生しました。");
             }
         }
     }
@@ -357,7 +428,7 @@ public class GameOverManager : NetworkBehaviour
             }
             else
             {
-                 Debug.LogError("[GameOverManager] SpawnEnemyManager.Instanceが見つかりません！");
+                Debug.LogError("[GameOverManager] SpawnEnemyManager.Instanceが見つかりません！");
             }
 
             if (heartbeat != null)
@@ -563,54 +634,53 @@ public class GameOverManager : NetworkBehaviour
         Debug.Log($"[GameOverManager] スコアUIを更新: Your Score={myScore}, Friend Score={friendScore}");
     }
 
+    private void SetAlpha(float alpha)
+    {
+        if (whiteScreenImage != null)
+        {
+            Color c = whiteScreenImage.color;
+            c.a = alpha;
+            whiteScreenImage.color = c;
+        }
+        if (whiteScreenText != null)
+        {
+            Color c = whiteScreenText.color;
+            c.a = alpha;
+            whiteScreenText.color = c;
+        }
+        if (whiteScreenTMPText != null)
+        {
+            Color c = whiteScreenTMPText.color;
+            c.a = alpha;
+            whiteScreenTMPText.color = c;
+        }
+    }
+
     IEnumerator WhiteOutAndResult(GameObject resultWindow, string soundMethodName)
     {
         Debug.Log("[GameOverManager] WhiteOutAndResult コルーチン開始。");
         if (whiteScreenImage == null) { Debug.LogError("[GameOverManager] WhiteScreenImageがnullです。"); yield break; }
         if (audioManager == null) { Debug.LogError("[GameOverManager] AudioManagerがnullです。"); yield break; }
 
+        if (whiteScreen != null) 
+        {
+            whiteScreen.SetActive(true);
+            whiteScreen.transform.SetAsLastSibling(); 
+        }
         whiteScreenImage.gameObject.SetActive(true);
-        if (whiteScreenText != null) whiteScreenText.gameObject.SetActive(true);
-        if (whiteScreenTMPText != null) whiteScreenTMPText.gameObject.SetActive(true);
 
         audioManager.StopAllSounds();
-        Debug.Log("[GameOverManager] すべてのサウンドを停止しました。");
 
-        float elapsedTime = 0f;
-        float startAlpha = 1f;
-
-        Color initialImageColor = whiteScreenImage.color;
-        initialImageColor.a = 0f;
-        whiteScreenImage.color = initialImageColor;
-
-        Color initialTextColor = Color.white;
-        if (whiteScreenText != null) { initialTextColor = whiteScreenText.color; initialTextColor.a = 0f; whiteScreenText.color = initialTextColor; }
-
-        Color initialTMPTextColor = Color.white;
-        if (whiteScreenTMPText != null) { initialTMPTextColor = whiteScreenTMPText.color; initialTMPTextColor.a = 0f; whiteScreenTMPText.color = initialTMPTextColor; }
-
-        Debug.Log("[GameOverManager] ホワイトスクリーン フェードイン開始。");
-        while (elapsedTime < 1f)
-        {
-            elapsedTime += Time.unscaledDeltaTime;
-            float alpha = Mathf.Lerp(0f, startAlpha, elapsedTime / 1f);
-
-            Color imageColor = whiteScreenImage.color;
-            imageColor.a = alpha;
-            whiteScreenImage.color = imageColor;
-
-            if (whiteScreenText != null) { Color textColor = whiteScreenText.color; textColor.a = alpha; whiteScreenText.color = textColor; }
-            if (whiteScreenTMPText != null) { Color tmpTextColor = whiteScreenTMPText.color; tmpTextColor.a = alpha; whiteScreenTMPText.color = tmpTextColor; }
-            yield return null;
-        }
-        Debug.Log("[GameOverManager] ホワイトスクリーン フェードイン完了。");
+        SetAlpha(1.0f);
+        Debug.Log("[GameOverManager] ホワイトスクリーンを一瞬で表示しました (Alpha=1)。");
 
         if (audioManager != null)
         {
             audioManager.PlayFinishSound();
             Debug.Log("[GameOverManager] PlayFinishSound を再生しました。");
         }
-        yield return new WaitForSeconds(2f);
+
+        yield return new WaitForSecondsRealtime(2f);
 
         if (audioManager != null)
         {
@@ -620,6 +690,8 @@ public class GameOverManager : NetworkBehaviour
                 case "PlayWinSound": audioManager.PlayWinSound(); break;
                 case "PlayLoseSound": audioManager.PlayLoseSound(); break;
                 case "PlayDrawSound": audioManager.PlayDrawSound(); break;
+                case "PlaySingleResultBgm": audioManager.PlaySingleResultBgm(); break;
+                case "None": Debug.Log("[GameOverManager] BGM再生をスキップしました。"); break;
                 default:
                     Debug.LogWarning($"[GameOverManager] 不明なサウンドメソッド名: {soundMethodName}");
                     break;
@@ -632,34 +704,23 @@ public class GameOverManager : NetworkBehaviour
             Debug.Log($"[GameOverManager] 結果ウィンドウ {resultWindow.name} を有効にしました。");
         }
 
-        float fadeOutStartTime = elapsedTime;
-        float fadeOutDuration = 3f;
+        float elapsedTime = 0f;
+        // インスペクターで設定した fadeDuration を使用
         Debug.Log("[GameOverManager] ホワイトスクリーン フェードアウト開始。");
-        while (elapsedTime < fadeOutStartTime + fadeOutDuration)
+        while (elapsedTime < fadeDuration)
         {
-            elapsedTime += Time.unscaledDeltaTime;
-            float alpha = Mathf.Lerp(startAlpha, 0f, (elapsedTime - fadeOutStartTime) / fadeOutDuration);
-
-            Color imageColor = whiteScreenImage.color;
-            imageColor.a = alpha;
-            whiteScreenImage.color = imageColor;
-
-            if (whiteScreenText != null) { Color textColor = whiteScreenText.color; textColor.a = alpha; whiteScreenText.color = textColor; }
-            if (whiteScreenTMPText != null) { Color tmpTextColor = whiteScreenTMPText.color; tmpTextColor.a = alpha; whiteScreenTMPText.color = tmpTextColor; }
+            elapsedTime += Time.unscaledDeltaTime; 
+            float alpha = Mathf.Lerp(1.0f, 0f, elapsedTime / fadeDuration);
+            SetAlpha(alpha);
             yield return null;
         }
+        
         Debug.Log("[GameOverManager] ホワイトスクリーン フェードアウト完了。");
 
+        SetAlpha(0f);
         if (whiteScreen != null) whiteScreen.SetActive(false);
-        if (whiteScreenText != null) whiteScreenText.gameObject.SetActive(false);
-        if (whiteScreenTMPText != null) whiteScreenTMPText.gameObject.SetActive(false);
-
-        Color finalImageColor = whiteScreenImage.color;
-        finalImageColor.a = 0f;
-        whiteScreenImage.color = finalImageColor;
-
-        if (whiteScreenText != null) { Color finalTextColor = whiteScreenText.color; finalTextColor.a = 0f; whiteScreenText.color = finalTextColor; }
-        if (whiteScreenTMPText != null) { Color finalTMPTextColor = whiteScreenTMPText.color; finalTMPTextColor.a = 0f; whiteScreenTMPText.color = finalTMPTextColor; }
+        if (whiteScreenImage != null) whiteScreenImage.gameObject.SetActive(false);
+        
         Debug.Log("[GameOverManager] WhiteOutAndResult コルーチン終了。");
     }
 

@@ -32,22 +32,21 @@ public class AudioManager : MonoBehaviour
 
     [Header("BGM Clips")]
     public Sound openingBgm; // タイトルやロビーなどで使用するメインBGM
-    // ▼▼▼ 以下を追加 ▼▼▼
     public Sound selectionBgm; // セレクション画面用BGM
-    // ▲▲▲ ここまで追加 ▲▲▲
     public Sound battleBgm; // バトルBGM
+    public Sound singleResultBgm; // シングルモード終了時専用のBGM
 
     [Header("Game Over Sound Clips")]
-    public AudioClip winClip;
-    public AudioClip loseClip;
-    public AudioClip drawClip;
-    public AudioClip finishClip;
+    public AudioClip winClip;     // 汎用の勝利サウンド（マルチプレイなど）
+    public AudioClip loseClip;    // 敗北サウンド
+    public AudioClip drawClip;    // 引き分けサウンド
+    public AudioClip finishClip;  // 終了サウンド
 
     [Header("SFX Clips")]
     public AudioClip gemCollectSound;
     public AudioClip clickSound;
     public AudioClip titleCallClip; // タイトルコールSFXクリップ
-    public AudioClip gunshotSound; // ★★★ 銃声用の変数を追加 ★★★
+    public AudioClip gunshotSound; // 銃声用の変数
 
     public static AudioManager Instance { get; private set; }
 
@@ -124,13 +123,13 @@ public class AudioManager : MonoBehaviour
             case "LobbyScene":
                 PlayBGM(openingBgm);
                 break;
-            // ▼▼▼ 以下を追加 ▼▼▼
             case "GameSelectionScene": // セレクション画面のシーン名
                 PlayBGM(selectionBgm); // セレクション画面用BGMを再生
                 break;
-            // ▲▲▲ ここまで追加 ▲▲▲
+            case "SingleResultScene": // ※実際のリザルトシーン名に合わせて変更してください
+                PlaySingleResultBgm(); 
+                break;
             case "School_Classroom":
-                // 例：戦闘シーンに入ったらbattleBgmを再生する
                 // PlayBGM(battleBgm); 
                 break;
             default:
@@ -152,7 +151,6 @@ public class AudioManager : MonoBehaviour
         }
         else
         {
-            // Debug.LogWarning("タイトルコールSFXクリップが設定されていないか、nullです。");
             yield return new WaitForSeconds(0.5f);
         }
 
@@ -169,7 +167,6 @@ public class AudioManager : MonoBehaviour
 
     public void StopAllSounds()
     {
-        // ▼▼▼ FindObjectsOfType -> FindObjectsByType に修正 ▼▼▼
         AudioSource[] allAudioSources = FindObjectsByType<AudioSource>(FindObjectsSortMode.None);
 
         foreach (AudioSource audioSrc in allAudioSources)
@@ -202,29 +199,46 @@ public class AudioManager : MonoBehaviour
         Debug.Log($"BGM '{sound.clip.name}' を再生しました。(個別音量: {sound.volume})");
     }
 
+    // ▼▼▼ 追加: AudioClipと音量を直接受け取るオーバーロードメソッド ▼▼▼
+    public void PlayBGM(AudioClip clip, float volume = 1.0f)
+    {
+        if (bgmAudioSource == null) return;
+        
+        // 既に同じ曲が流れていれば何もしない
+        if (bgmAudioSource.clip == clip && bgmAudioSource.isPlaying) return;
+
+        bgmAudioSource.Stop();
+        bgmAudioSource.clip = clip;
+        bgmAudioSource.volume = volume;
+        bgmAudioSource.loop = true;
+        
+        // Mixerの設定（念のため）
+        if (masterMixer != null)
+        {
+            AudioMixerGroup[] bgmGroups = masterMixer.FindMatchingGroups("BGM");
+            if (bgmGroups.Length > 0) { bgmAudioSource.outputAudioMixerGroup = bgmGroups[0]; }
+        }
+
+        bgmAudioSource.Play();
+        Debug.Log($"BGM (Clip) '{clip.name}' を再生しました。(音量: {volume})");
+    }
+    // ▲▲▲ ここまで追加 ▲▲▲
+
     public void PlaySFX_2D(AudioClip clip)
     {
         PlaySFX_2D(clip, 1.0f);
     }
     
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
-    /// <summary>
-    /// 指定した音量で2D効果音を再生します。
-    /// </summary>
-    /// <param name="clip">再生するオーディオクリップ</param>
-    /// <param name="volume">再生する音量</param>
     public void PlaySFX_2D(AudioClip clip, float volume)
     {
         if (clip == null || sfxMixerGroup == null) { if (clip == null) Debug.LogWarning("再生しようとしたAudioClipがnullです。"); if (sfxMixerGroup == null) Debug.LogError("AudioManagerにsfxMixerGroupが設定されていません!"); return; }
         
-        // sfxAudioSourceを使って再生することで、オブジェクトの生成コストを削減
         if (sfxAudioSource != null)
         {
             sfxAudioSource.PlayOneShot(clip, volume);
         }
         else
         {
-            // sfxAudioSourceがない場合のフォールバック
             GameObject soundGameObject = new GameObject("OneShotSFX_2D");
             AudioSource audioSource = soundGameObject.AddComponent<AudioSource>();
             audioSource.clip = clip;
@@ -235,7 +249,6 @@ public class AudioManager : MonoBehaviour
             Destroy(soundGameObject, clip.length);
         }
     }
-    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
     public void PlaySFXAtPoint(AudioClip clip, Vector3 position)
     {
@@ -278,13 +291,18 @@ public class AudioManager : MonoBehaviour
     public void PlayWinSound() { PlayOneShotSFX(winClip); }
     public void PlayLoseSound() { PlayOneShotSFX(loseClip); }
     public void PlayDrawSound() { PlayOneShotSFX(drawClip); }
+    
+    public void PlaySingleResultBgm() 
+    { 
+        PlayBGM(singleResultBgm); 
+    }
+
     public void PlayGemCollectSound(Vector3 position) { PlaySFXAtPoint(gemCollectSound, position); }
     public void PlayClickSound() { PlaySFX_2D(clickSound); }
     
-    public void PlaySFX(AudioClip clip) // ★★★ PlaySFX メソッドを定義 ★★★
+    public void PlaySFX(AudioClip clip, float volume = 1.0f) 
     {
-        // GameOverManager.csの呼び出しに対応するためのメソッド
-        PlayOneShotSFX(clip); 
+        PlayOneShotSFX(clip, volume); 
     }
 
     public void PlayGunshotSound(Vector3 position)

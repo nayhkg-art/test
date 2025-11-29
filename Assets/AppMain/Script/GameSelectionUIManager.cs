@@ -3,23 +3,13 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
 
-[System.Serializable]
-public class RankUI
-{
-    public GameType gameType;
-    public GameObject rank_S_UI;
-    public GameObject rank_A_UI;
-    public GameObject rank_B_UI;
-    public GameObject rank_C_UI;
-    public GameObject rank_D_UI;
-    public GameObject rank_E_UI;
-    public GameObject rank_F_UI;
-}
+// RankUIの定義は GoGameManager.cs に移動したため削除
 
 public class GameSelectionUIManager : MonoBehaviour
 {
-    [Header("Rank UI")]
-    [SerializeField] private List<RankUI> rankUIs;
+    // ランク表示用のリスト変数を削除
+    // [Header("Rank UI")]
+    // [SerializeField] private List<RankUI> rankUIs; 
 
     [Header("Game Mode Buttons")]
     [SerializeField] private Button jidoushiTadoushiButton;
@@ -27,16 +17,19 @@ public class GameSelectionUIManager : MonoBehaviour
     [SerializeField] private Button hiraganaButton;
     [SerializeField] private Button katakanaButton;
     [SerializeField] private Button yohoonButton;
+    [SerializeField] private Button katakanaEigoButton;
+    [SerializeField] private Button hinshiButton;
+    [SerializeField] private Button groupButton;
+    [SerializeField] private Button firstKanjiButton;
+
+    // --- 使用しないボタン（インスペクターに残っていてもコードで制御するため保持、またはnull許容） ---
+    [Header("Unused / Hidden Buttons")]
     [SerializeField] private Button kanjiWarmUpButton;
     [SerializeField] private Button kanjiN5Button;
     [SerializeField] private Button kanjiN4Button;
     [SerializeField] private Button kanjiN3Button;
     [SerializeField] private Button kanjiN2Button;
     [SerializeField] private Button kanjiN1Button;
-    [SerializeField] private Button katakanaEigoButton;
-    [SerializeField] private Button hinshiButton;
-    [SerializeField] private Button groupButton;
-    [SerializeField] private Button firstKanjiButton;
 
     [Header("Navigation Buttons")]
     [SerializeField] private Button backToTitleButton;
@@ -56,15 +49,17 @@ public class GameSelectionUIManager : MonoBehaviour
     [SerializeField] private GameObject hiraganaLock;
     // [SerializeField] private GameObject katakanaLock;
     [SerializeField] private GameObject yohoonLock;
+    [SerializeField] private GameObject katakanaEigoLock;
+    [SerializeField] private GameObject hinshiLock;
+    [SerializeField] private GameObject groupLock;
+    [SerializeField] private GameObject firstKanjiLock;
+
+    // --- 使用しないロックアイコン ---
     [SerializeField] private GameObject kanjiN5Lock;
     [SerializeField] private GameObject kanjiN4Lock;
     [SerializeField] private GameObject kanjiN3Lock;
     [SerializeField] private GameObject kanjiN2Lock;
     [SerializeField] private GameObject kanjiN1Lock;
-    [SerializeField] private GameObject katakanaEigoLock;
-    [SerializeField] private GameObject hinshiLock;
-    [SerializeField] private GameObject groupLock;
-    [SerializeField] private GameObject firstKanjiLock;
 
     void Start()
     {
@@ -74,9 +69,14 @@ public class GameSelectionUIManager : MonoBehaviour
             return;
         }
 
+        // 不要なボタンとロックアイコンを非表示にする
+        HideUnusedButtons();
+
         AddListeners();
         UpdateGameModeDisplay();
-        UpdateRankDisplay();
+        
+        // セレクト画面でのランク表示は廃止のため削除
+        // UpdateRankDisplay();
 
         if (helpPanel != null)
         {
@@ -112,6 +112,33 @@ public class GameSelectionUIManager : MonoBehaviour
         }
     }
 
+    // 現在使用していない漢字系のボタンとロックを非表示にするメソッド
+    private void HideUnusedButtons()
+    {
+        SetObjectActive(kanjiWarmUpButton, false);
+        SetObjectActive(kanjiN5Button, false);
+        SetObjectActive(kanjiN4Button, false);
+        SetObjectActive(kanjiN3Button, false);
+        SetObjectActive(kanjiN2Button, false);
+        SetObjectActive(kanjiN1Button, false);
+
+        SetObjectActive(kanjiN5Lock, false);
+        SetObjectActive(kanjiN4Lock, false);
+        SetObjectActive(kanjiN3Lock, false);
+        SetObjectActive(kanjiN2Lock, false);
+        SetObjectActive(kanjiN1Lock, false);
+    }
+    
+    private void SetObjectActive(Component comp, bool isActive)
+    {
+        if (comp != null) comp.gameObject.SetActive(isActive);
+    }
+    
+    private void SetObjectActive(GameObject obj, bool isActive)
+    {
+        if (obj != null) obj.SetActive(isActive);
+    }
+
     private void AddListeners()
     {
         AddListener(jidoushiTadoushiButton, GameSelectionManager.Instance.OnJidoushiTadoushiSelected);
@@ -119,16 +146,11 @@ public class GameSelectionUIManager : MonoBehaviour
         AddListener(hiraganaButton, GameSelectionManager.Instance.OnHiraganaSelected);
         AddListener(katakanaButton, GameSelectionManager.Instance.OnKatakanaSelected);
         AddListener(yohoonButton, GameSelectionManager.Instance.OnYohoonSelected);
-        AddListener(kanjiWarmUpButton, GameSelectionManager.Instance.OnKanjiWarmUpSelected);
-        AddListener(kanjiN5Button, GameSelectionManager.Instance.OnKanjiN5Selected);
-        AddListener(kanjiN4Button, GameSelectionManager.Instance.OnKanjiN4Selected);
-        AddListener(kanjiN3Button, GameSelectionManager.Instance.OnKanjiN3Selected);
-        AddListener(kanjiN2Button, GameSelectionManager.Instance.OnKanjiN2Selected);
-        AddListener(kanjiN1Button, GameSelectionManager.Instance.OnKanjiN1Selected);
         AddListener(katakanaEigoButton, GameSelectionManager.Instance.OnKatakanaEigoSelected);
         AddListener(hinshiButton, GameSelectionManager.Instance.OnHinshiSelected);
         AddListener(groupButton, GameSelectionManager.Instance.OnGroupSelected);
         AddListener(firstKanjiButton, GameSelectionManager.Instance.OnFirstKanjiSelected);
+        
         AddListener(backToTitleButton, GameSelectionManager.Instance.OnBackToTitle);
 
         if (helpButton != null)
@@ -150,16 +172,11 @@ public class GameSelectionUIManager : MonoBehaviour
         RemoveListener(hiraganaButton, GameSelectionManager.Instance.OnHiraganaSelected);
         RemoveListener(katakanaButton, GameSelectionManager.Instance.OnKatakanaSelected);
         RemoveListener(yohoonButton, GameSelectionManager.Instance.OnYohoonSelected);
-        RemoveListener(kanjiWarmUpButton, GameSelectionManager.Instance.OnKanjiWarmUpSelected);
-        RemoveListener(kanjiN5Button, GameSelectionManager.Instance.OnKanjiN5Selected);
-        RemoveListener(kanjiN4Button, GameSelectionManager.Instance.OnKanjiN4Selected);
-        RemoveListener(kanjiN3Button, GameSelectionManager.Instance.OnKanjiN3Selected);
-        RemoveListener(kanjiN2Button, GameSelectionManager.Instance.OnKanjiN2Selected);
-        RemoveListener(kanjiN1Button, GameSelectionManager.Instance.OnKanjiN1Selected);
         RemoveListener(katakanaEigoButton, GameSelectionManager.Instance.OnKatakanaEigoSelected);
         RemoveListener(hinshiButton, GameSelectionManager.Instance.OnHinshiSelected);
         RemoveListener(groupButton, GameSelectionManager.Instance.OnGroupSelected);
         RemoveListener(firstKanjiButton, GameSelectionManager.Instance.OnFirstKanjiSelected);
+        
         RemoveListener(backToTitleButton, GameSelectionManager.Instance.OnBackToTitle);
 
         if (helpButton != null)
@@ -202,11 +219,6 @@ public class GameSelectionUIManager : MonoBehaviour
         SetLockIconState(hiraganaLock, IAPManager.ProductIds[GameType.Hiragana]);
         // SetLockIconState(katakanaLock, IAPManager.ProductIds[GameType.Katakana]);
         SetLockIconState(yohoonLock, IAPManager.ProductIds[GameType.Yohoon]);
-        SetLockIconState(kanjiN5Lock, IAPManager.ProductIds[GameType.KanjiN5]);
-        SetLockIconState(kanjiN4Lock, IAPManager.ProductIds[GameType.KanjiN4]);
-        SetLockIconState(kanjiN3Lock, IAPManager.ProductIds[GameType.KanjiN3]);
-        SetLockIconState(kanjiN2Lock, IAPManager.ProductIds[GameType.KanjiN2]);
-        SetLockIconState(kanjiN1Lock, IAPManager.ProductIds[GameType.KanjiN1]);
         SetLockIconState(katakanaEigoLock, IAPManager.ProductIds[GameType.KatakanaEigo]);
         SetLockIconState(hinshiLock, IAPManager.ProductIds[GameType.Hinshi]);
         SetLockIconState(groupLock, IAPManager.ProductIds[GameType.Group]);
@@ -243,60 +255,6 @@ public class GameSelectionUIManager : MonoBehaviour
                     gameModeText.text = "No Mode Selected";
                     break;
             }
-        }
-    }
-
-    private void UpdateRankDisplay()
-    {
-        if (GameSelectionManager.Instance == null ||
-            GameSelectionManager.Instance.CurrentGameMode != GameSelectionManager.GameMode.SinglePlayer)
-        {
-            foreach (var rankUI in rankUIs)
-            {
-                SetAllRankUIInactive(rankUI);
-            }
-            return;
-        }
-
-        foreach (var rankUI in rankUIs)
-        {
-            SetAllRankUIInactive(rankUI);
-            RankManager.Rank bestRank = RankManager.LoadBestRank(rankUI.gameType);
-            if (bestRank != RankManager.Rank.None)
-            {
-                SetRankUIActive(rankUI, bestRank, true);
-            }
-        }
-    }
-
-    private void SetAllRankUIInactive(RankUI rankUI)
-    {
-        if (rankUI.rank_S_UI != null) rankUI.rank_S_UI.SetActive(false);
-        if (rankUI.rank_A_UI != null) rankUI.rank_A_UI.SetActive(false);
-        if (rankUI.rank_B_UI != null) rankUI.rank_B_UI.SetActive(false);
-        if (rankUI.rank_C_UI != null) rankUI.rank_C_UI.SetActive(false);
-        if (rankUI.rank_D_UI != null) rankUI.rank_D_UI.SetActive(false);
-        if (rankUI.rank_E_UI != null) rankUI.rank_E_UI.SetActive(false);
-        if (rankUI.rank_F_UI != null) rankUI.rank_F_UI.SetActive(false);
-    }
-
-    private void SetRankUIActive(RankUI rankUI, RankManager.Rank rank, bool isActive)
-    {
-        GameObject uiObject = null;
-        switch (rank)
-        {
-            case RankManager.Rank.S: uiObject = rankUI.rank_S_UI; break;
-            case RankManager.Rank.A: uiObject = rankUI.rank_A_UI; break;
-            case RankManager.Rank.B: uiObject = rankUI.rank_B_UI; break;
-            case RankManager.Rank.C: uiObject = rankUI.rank_C_UI; break;
-            case RankManager.Rank.D: uiObject = rankUI.rank_D_UI; break;
-            case RankManager.Rank.E: uiObject = rankUI.rank_E_UI; break;
-            case RankManager.Rank.F: uiObject = rankUI.rank_F_UI; break;
-        }
-
-        if (uiObject != null)
-        {
-            uiObject.SetActive(isActive);
         }
     }
 

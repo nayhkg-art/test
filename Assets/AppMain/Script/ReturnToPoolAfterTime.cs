@@ -4,22 +4,23 @@ public class ReturnToPoolAfterTime : MonoBehaviour
 {
     public float lifeTime = 3f; // この時間後にプールに戻る
 
-    private float timer;
-
     // オブジェクトがアクティブになった時に呼ばれる
     void OnEnable()
     {
-        // タイマーをリセット
-        timer = 0f;
+        // lifeTime秒後に Deactivate 関数を実行予約する
+        Invoke(nameof(Deactivate), lifeTime);
     }
 
-    void Update()
+    // オブジェクトが非アクティブになる時に呼ばれる
+    void OnDisable()
     {
-        timer += Time.deltaTime;
-        if (timer > lifeTime)
-        {
-            // 自身を非アクティブにしてプールに戻す
-            gameObject.SetActive(false);
-        }
+        // もし途中で手動で消された場合などに備え、予約をキャンセルする
+        CancelInvoke(nameof(Deactivate));
+    }
+
+    void Deactivate()
+    {
+        // 自身を非アクティブにしてプールに戻す
+        gameObject.SetActive(false);
     }
 }

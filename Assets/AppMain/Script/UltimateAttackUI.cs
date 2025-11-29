@@ -1,54 +1,61 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI; // Buttonを使うために必要
 
 public class UltimateAttackUI : MonoBehaviour
 {
     [Header("UIオブジェクト参照")]
-    [Tooltip("「Ultimate」という文字を表示するテキストオブジェクト")]
     public TMP_Text ultimateTextObject;
-    [Tooltip("「Attack Player2」という文字を表示するテキストオブジェクト")]
     public TMP_Text attackPlayer2TextObject;
 
+    [Header("既存のアルティメットボタン")]
+    // ▼▼▼ 追加：画面上のアルティメットボタンをここにセットする ▼▼▼
+    public Button ultimateButton; 
+    // ▲▲▲ 追加 ▲▲▲
+
     [Header("効果音設定")]
-    [Tooltip("テキストが表示された時に鳴らす効果音")]
     public AudioClip showSound;
-    [Tooltip("効果音の音量")]
     [Range(0f, 5f)]
     public float soundVolume = 1.0f;
 
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
     [Header("カメラ")]
-    [Tooltip("揺らす対象のカメラコントローラー")]
     public CameraCustomController cameraController;
-    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
     void Awake()
     {
         if (ultimateTextObject == null || attackPlayer2TextObject == null)
         {
-            Debug.LogError("2つのテキストオブジェクトがInspectorから設定されていません！");
+            Debug.LogError("テキストオブジェクトが設定されていません");
             enabled = false;
             return;
         }
 
-        // --- ▼▼▼ ここから追加 ▼▼▼ ---
-        // カメラコントローラーが設定されていなければシーンから探す
         if (cameraController == null)
         {
-            // FindObjectOfTypeは非推奨のため、FindFirstObjectByTypeを使用
             cameraController = FindFirstObjectByType<CameraCustomController>();
-            if (cameraController == null)
-            {
-                Debug.LogWarning("CameraCustomControllerが見つかりませんでした。カメラは揺れません。");
-            }
         }
-        // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
-        // 初期状態では非表示にしておく
         ultimateTextObject.gameObject.SetActive(false);
         attackPlayer2TextObject.gameObject.SetActive(false);
     }
+
+    // ▼▼▼ 追加：Zキー入力の監視 ▼▼▼
+    void Update()
+    {
+        // Zキーが押された時
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            // ボタンが設定されていて、かつ「今押せる状態（Interactable）」なら
+            if (ultimateButton != null && ultimateButton.interactable)
+            {
+                // ボタンを「クリックしたこと」にする
+                // これにより、既存のゲージ消費処理などが自動で動きます
+                ultimateButton.onClick.Invoke(); 
+            }
+        }
+    }
+    // ▲▲▲ 追加 ▲▲▲
 
     public void Show()
     {
@@ -58,28 +65,39 @@ public class UltimateAttackUI : MonoBehaviour
 
     private IEnumerator ShowAndHideUI()
     {
-        // テキストを表示
         ultimateTextObject.gameObject.SetActive(true);
         attackPlayer2TextObject.gameObject.SetActive(true);
 
-        // --- ▼▼▼ ここから追加 ▼▼▼ ---
-        // カメラを揺らす
         if (cameraController != null)
         {
             cameraController.TriggerUltimateShake();
         }
-        // --- ▲▲▲ ここまで追加 ▲▲▲ ---
 
-        // 効果音を再生
+        // ▼▼▼ 敵を倒す処理（ここは必要です） ▼▼▼
+        
+        // 1. シールド持ちの敵
+        StatusManagerEnemy[] allEnemies = FindObjectsByType<StatusManagerEnemy>(FindObjectsSortMode.None);
+        foreach (var enemy in allEnemies)
+        {
+            if (enemy != null) enemy.BreakShield();
+        }
+
+        // 2. 攻撃してくる敵（今回追加したい機能）
+        StatusManagerEnemyAttack[] attackEnemies = FindObjectsByType<StatusManagerEnemyAttack>(FindObjectsSortMode.None);
+        foreach (var attackEnemy in attackEnemies)
+        {
+            // StatusManagerEnemyAttack側に追加したメソッドを呼ぶ
+            if (attackEnemy != null) attackEnemy.ReceiveUltimateDamage();
+        }
+        // ▲▲▲ ここまで ▲▲▲
+
         if (AudioManager.Instance != null && showSound != null)
         {
             AudioManager.Instance.PlayOneShotSFX(showSound, soundVolume);
         }
 
-        // 2秒待機
         yield return new WaitForSeconds(2.0f);
 
-        // テキストを非表示
         ultimateTextObject.gameObject.SetActive(false);
         attackPlayer2TextObject.gameObject.SetActive(false);
     }

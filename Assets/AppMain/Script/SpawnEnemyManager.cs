@@ -18,7 +18,12 @@ public class SpawnEnemyManager : MonoBehaviour
     private List<bool> _enemyCorrectFlags = new List<bool>();
 
     [Header("自動詞他動詞モード設定")]
-    public float initialSpawnInterval = 10f;
+    public float initialSpawnInterval = 20f; // 初期値を20秒に変更
+    public float minSpawnInterval = 3f;      // 最小間隔（3秒）
+    
+    [Tooltip("敵が全滅している時に、次の敵が出るまでの待ち時間（秒）")]
+    public float spawnDelayWhenNoEnemies = 3.0f; // ★ここを追加しました
+
     private float currentJidoushiSpawnInterval;
     private Coroutine jidoushiTadoushiSpawnCoroutine;
 
@@ -70,7 +75,6 @@ public class SpawnEnemyManager : MonoBehaviour
         {
             if (enemyInstance != null)
             {
-                // ★★★ 変更点：破壊する前にGameObjectを非アクティブ化して、全ての動作を即時停止させる ★★★
                 enemyInstance.SetActive(false);
                 Destroy(enemyInstance);
             }
@@ -80,7 +84,6 @@ public class SpawnEnemyManager : MonoBehaviour
         // 通常の敵（漢字モード）を全削除
         DestroyAllKanjiActiveEnemiesInScene();
 
-        // --- ▼▼▼ ここからが修正部分 ▼▼▼ ---
         // 相手から送り込まれた攻撃用の敵("AttackEnemy"タグを持つ敵)を全削除
         GameObject[] attackEnemies = GameObject.FindGameObjectsWithTag("AttackEnemy");
         foreach (GameObject attackEnemy in attackEnemies)
@@ -91,7 +94,6 @@ public class SpawnEnemyManager : MonoBehaviour
                 Destroy(attackEnemy);
             }
         }
-        // --- ▲▲▲ ここまでが修正部分 ▲▲▲ ---
 
         _currentActiveEnemyCount = 0;
         _currentSpawnedPairCount = 0;
@@ -135,14 +137,49 @@ public class SpawnEnemyManager : MonoBehaviour
                 break;
             }
 
+            // --- 次の出現までの基本時間を計算 ---
             float denominator = QuestionManager.TotalEnemyNum;
+            float calcInterval = initialSpawnInterval;
+
             if (denominator > 0)
             {
-                float appearTime = 10f - (QuestionManager.DefeatEnemyNum * 9f / denominator);
-                currentJidoushiSpawnInterval = Mathf.Max(1.0f, appearTime);
+                // 倒した数に応じて initialSpawnInterval(20) -> minSpawnInterval(3) へと短縮
+                float reductionRange = initialSpawnInterval - minSpawnInterval;
+                float appearTime = initialSpawnInterval - (QuestionManager.DefeatEnemyNum * reductionRange / denominator);
+                calcInterval = Mathf.Max(minSpawnInterval, appearTime);
             }
+            
+            currentJidoushiSpawnInterval = calcInterval;
 
-            yield return new WaitForSeconds(currentJidoushiSpawnInterval);
+            // --- ★変更点：待機時間の動的制御ロジック ---
+            
+            // 出現予定時刻を決定（現在時刻 + 計算した間隔）
+            float spawnTime = Time.time + currentJidoushiSpawnInterval;
+
+            // 出現予定時刻になるまでループで監視
+            while (Time.time < spawnTime)
+            {
+                if (isSpawningStopped) yield break;
+
+                // 敵が全滅しているかチェック
+                if (_currentActiveEnemyCount <= 0)
+                {
+                    // 「今からspawnDelayWhenNoEnemies秒後」の時刻
+                    // ★ここでインスペクターの設定値を使います
+                    float maxWaitTime = Time.time + spawnDelayWhenNoEnemies;
+
+                    // もし「本来の出現予定時刻」が「今から設定値秒後」より未来にあるなら
+                    // (例: あと10秒待つ予定だが、敵がいないので3秒に短縮したい場合)
+                    if (spawnTime > maxWaitTime)
+                    {
+                        // 出現予定時刻を「今から設定値秒後」に上書き短縮
+                        spawnTime = maxWaitTime;
+                    }
+                }
+
+                yield return null; // 1フレーム待機して再チェック
+            }
+            // --------------------------------------------
 
             if (isSpawningStopped) yield break;
 
@@ -281,7 +318,6 @@ public class SpawnEnemyManager : MonoBehaviour
         {
             if (enemyInstance != null)
             {
-                // ★★★ 変更点：破壊する前にGameObjectを非アクティブ化して、全ての動作を即時停止させる ★★★
                 enemyInstance.SetActive(false);
                 Destroy(enemyInstance);
             }
