@@ -41,6 +41,7 @@ public class GameOverManager : NetworkBehaviour
     [Header("White Screen Fade")]
     public GameObject whiteScreen; // 親オブジェクト
     public Image whiteScreenImage;
+    public TMP_Text timeUpText;
     [SerializeField] private float fadeDuration = 1.0f; // フェードアウトにかかる時間
     private Text whiteScreenText;
     private TMP_Text whiteScreenTMPText;
@@ -139,6 +140,10 @@ public class GameOverManager : NetworkBehaviour
             whiteScreenText = whiteScreenImage.GetComponentInChildren<Text>();
             whiteScreenTMPText = whiteScreenImage.GetComponentInChildren<TMP_Text>();
         }
+        if (timeUpText != null)
+        {
+            timeUpText.gameObject.SetActive(false);
+        }
 
         // --- ▼▼▼ 修正：初期化時に両方のテキストオブジェクトを非表示にする ▼▼▼ ---
         if (timeUpObject != null) timeUpObject.SetActive(false);
@@ -164,6 +169,14 @@ public class GameOverManager : NetworkBehaviour
         if (isGameOver.Value) return;
 
         if (AudioManager.Instance != null) AudioManager.Instance.StopAllSounds();
+
+        if (GameSelectionManager.Instance != null && GameSelectionManager.Instance.CurrentGameMode == GameSelectionManager.GameMode.Multiplayer && reason == GameOverReason.Score)
+        {
+            if (timeUpText != null)
+            {
+                timeUpText.gameObject.SetActive(true);
+            }
+        }
 
         if (GameSelectionManager.Instance != null && GameSelectionManager.Instance.CurrentGameMode == GameSelectionManager.GameMode.SinglePlayer)
         {
@@ -669,6 +682,12 @@ public class GameOverManager : NetworkBehaviour
             c.a = alpha;
             whiteScreenTMPText.color = c;
         }
+        if (timeUpText != null)
+        {
+            Color c = timeUpText.color;
+            c.a = alpha;
+            timeUpText.color = c;
+        }
     }
 
     // --- ▼▼▼ 修正: TimeUpかどうかで表示を分岐させる処理に変更 ▼▼▼ ---
@@ -756,6 +775,7 @@ public class GameOverManager : NetworkBehaviour
         SetAlpha(0f);
         if (whiteScreen != null) whiteScreen.SetActive(false);
         if (whiteScreenImage != null) whiteScreenImage.gameObject.SetActive(false);
+        if (timeUpText != null) timeUpText.gameObject.SetActive(false);
         
         Debug.Log("[GameOverManager] WhiteOutAndResult コルーチン終了。");
     }
